@@ -4,6 +4,10 @@ import cors from "cors";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
 import authRoutes from "./routes/auth.js";
+import whoopRoutes from "./routes/whoop.js";
+import assessmentRoutes from "./routes/assessments.js";
+import userRoutes from "./routes/users.js";
+import { startWhoopSyncScheduler } from "./jobs/whoop-sync.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -36,11 +40,16 @@ app.get("/", (_req, res) => {
 
 // API routes
 app.use("/api/auth", authRoutes);
+app.use("/api/whoop", whoopRoutes);
+app.use("/api/assessments", assessmentRoutes);
+app.use("/api/users", userRoutes);
 
 // Start server only if not in test mode
 if (process.env.NODE_ENV !== "test") {
   app.listen(PORT, () => {
     console.log(`🚀 API server running on http://localhost:${PORT}`);
+    // Start WHOOP sync scheduler
+    startWhoopSyncScheduler();
   });
 }
 

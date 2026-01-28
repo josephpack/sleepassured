@@ -18,11 +18,12 @@ model User {
   updatedAt           DateTime  @updatedAt @map("updated_at")
 
   // Relations
-  isiAssessments  ISIAssessment[]
-  sleepDiaries    SleepDiary[]
-  sleepWindows    SleepWindow[]
-  whoopConnection WhoopConnection?
-  refreshTokens   RefreshToken[]
+  isiAssessments    ISIAssessment[]
+  sleepDiaries      SleepDiary[]
+  sleepWindows      SleepWindow[]
+  whoopConnection   WhoopConnection?
+  whoopSleepRecords WhoopSleepRecord[]
+  refreshTokens     RefreshToken[]
 
   @@map("users")
 }
@@ -129,4 +130,27 @@ model WhoopConnection {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("whoop_connections")
+}
+
+model WhoopSleepRecord {
+  id                   String   @id @default(uuid())
+  userId               String   @map("user_id")
+  whoopSleepId         BigInt   @unique @map("whoop_sleep_id")
+  startTime            DateTime @map("start_time")
+  endTime              DateTime @map("end_time")
+  totalSleepDurationMs BigInt   @map("total_sleep_duration_ms")
+  remSleepMs           BigInt   @map("rem_sleep_ms")
+  lightSleepMs         BigInt   @map("light_sleep_ms")
+  deepSleepMs          BigInt   @map("deep_sleep_ms")
+  awakeDurationMs      BigInt   @map("awake_duration_ms")
+  sleepEfficiency      Decimal  @map("sleep_efficiency") @db.Decimal(5, 2)
+  recoveryScore        Int?     @map("recovery_score")
+  hrvRmssd             Decimal? @map("hrv_rmssd") @db.Decimal(6, 2)
+  restingHeartRate     Int?     @map("resting_heart_rate")
+  rawJson              Json     @map("raw_json")
+  createdAt            DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("whoop_sleep_records")
 }
