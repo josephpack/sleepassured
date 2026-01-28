@@ -1,6 +1,8 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Link } from "react-router-dom";
+import { Settings } from "lucide-react";
 
 export function DashboardPage() {
   const { user, logout } = useAuth();
@@ -10,9 +12,16 @@ export function DashboardPage() {
       <div className="mx-auto max-w-4xl">
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-2xl font-bold">SleepAssured</h1>
-          <Button variant="outline" onClick={logout}>
-            Sign Out
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" size="icon" asChild>
+              <Link to="/settings">
+                <Settings className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button variant="outline" onClick={logout}>
+              Sign Out
+            </Button>
+          </div>
         </div>
 
         <Card>

@@ -2,6 +2,8 @@ import { createBrowserRouter } from "react-router-dom";
 import { LoginPage } from "@/pages/LoginPage";
 import { SignupPage } from "@/pages/SignupPage";
 import { DashboardPage } from "@/pages/DashboardPage";
+import { SettingsPage } from "@/pages/SettingsPage";
+import { OnboardingPage } from "@/pages/OnboardingPage";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { PublicRoute } from "@/components/PublicRoute";
 import { AppLayout } from "@/components/AppLayout";
@@ -33,10 +35,16 @@ export const router = createBrowserRouter([
             path: "/",
             element: <DashboardPage />,
           },
+          {
+            path: "/settings",
+            element: <SettingsPage />,
+          },
+          {
+            path: "/onboarding",
+            element: <OnboardingPage />,
+          },
           // Future routes:
-          // { path: "/onboarding", element: <OnboardingPage /> },
           // { path: "/diary", element: <DiaryPage /> },
-          // { path: "/settings", element: <SettingsPage /> },
         ],
       },
     ],
