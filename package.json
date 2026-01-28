@@ -1,0 +1,23 @@
+{
+  "name": "sleepassured",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspaces --if-present",
+    "build": "npm run build --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down",
+    "db:reset": "docker compose down -v && docker compose up -d",
+    "db:migrate": "npm run migrate --workspace=@sleepassured/db",
+    "db:studio": "npm run studio --workspace=@sleepassured/db",
+    "db:generate": "npm run generate --workspace=@sleepassured/db"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

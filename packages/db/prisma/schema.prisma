@@ -1,0 +1,132 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                  String    @id @default(uuid())
+  email               String    @unique
+  passwordHash        String    @map("password_hash")
+  name                String
+  targetWakeTime      String?   @map("target_wake_time") // HH:MM format
+  onboardingCompleted Boolean   @default(false) @map("onboarding_completed")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  isiAssessments  ISIAssessment[]
+  sleepDiaries    SleepDiary[]
+  sleepWindows    SleepWindow[]
+  whoopConnection WhoopConnection?
+  refreshTokens   RefreshToken[]
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String   @map("user_id")
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("refresh_tokens")
+}
+
+model ISIAssessment {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  score       Int // 0-28
+  responses   Json // Array of 7 question responses
+  completedAt DateTime @default(now()) @map("completed_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("isi_assessments")
+}
+
+enum DiarySource {
+  MANUAL
+  WHOOP
+  HYBRID
+}
+
+enum Mood {
+  VERY_POOR
+  POOR
+  OKAY
+  GOOD
+  GREAT
+}
+
+model SleepDiary {
+  id                  String      @id @default(uuid())
+  userId              String      @map("user_id")
+  date                DateTime    @db.Date
+  timeInBed           DateTime    @map("time_in_bed")
+  timeOutOfBed        DateTime    @map("time_out_of_bed")
+  sleepOnsetLatency   Int?        @map("sleep_onset_latency") // minutes
+  wakeAfterSleepOnset Int?        @map("wake_after_sleep_onset") // minutes
+  totalSleepTime      Int         @map("total_sleep_time") // minutes
+  sleepEfficiency     Decimal     @map("sleep_efficiency") @db.Decimal(5, 2)
+  subjectiveQuality   Int         @map("subjective_quality") // 1-10
+  mood                Mood?
+  notes               String?
+  source              DiarySource @default(MANUAL)
+  whoopRecoveryScore  Int?        @map("whoop_recovery_score")
+  followedWindow      Boolean?    @map("followed_window")
+  createdAt           DateTime    @default(now()) @map("created_at")
+  updatedAt           DateTime    @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@map("sleep_diaries")
+}
+
+enum WindowAdjustment {
+  INCREASE
+  DECREASE
+  NONE
+}
+
+model SleepWindow {
+  id                  String            @id @default(uuid())
+  userId              String            @map("user_id")
+  weekNumber          Int               @map("week_number")
+  prescribedBedtime   String            @map("prescribed_bedtime") // HH:MM
+  prescribedWakeTime  String            @map("prescribed_wake_time") // HH:MM
+  timeInBedAllowed    Int               @map("time_in_bed_allowed") // minutes
+  startedAt           DateTime          @map("started_at") @db.Date
+  endedAt             DateTime?         @map("ended_at") @db.Date
+  sleepEfficiency     Decimal?          @map("sleep_efficiency") @db.Decimal(5, 2)
+  adherencePercentage Decimal?          @map("adherence_percentage") @db.Decimal(5, 2)
+  adjustmentApplied   WindowAdjustment? @map("adjustment_applied")
+  createdAt           DateTime          @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, weekNumber])
+  @@map("sleep_windows")
+}
+
+model WhoopConnection {
+  id             String    @id @default(uuid())
+  userId         String    @unique @map("user_id")
+  whoopUserId    String    @map("whoop_user_id")
+  accessToken    String    @map("access_token") // Encrypted
+  refreshToken   String    @map("refresh_token") // Encrypted
+  tokenExpiresAt DateTime  @map("token_expires_at")
+  connectedAt    DateTime  @default(now()) @map("connected_at")
+  lastSyncedAt   DateTime? @map("last_synced_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("whoop_connections")
+}
