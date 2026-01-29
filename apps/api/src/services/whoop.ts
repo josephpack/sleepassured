@@ -173,7 +173,16 @@ export async function exchangeCodeForTokens(
     throw new Error(`Failed to exchange code for tokens: ${error}`);
   }
 
-  return response.json() as Promise<WhoopTokenResponse>;
+  const data = await response.json();
+  console.log("[WHOOP Debug] Token response keys:", Object.keys(data));
+
+  // WHOOP may not always return refresh_token - use access_token as fallback
+  return {
+    access_token: data.access_token,
+    refresh_token: data.refresh_token || data.access_token,
+    expires_in: data.expires_in || 3600,
+    token_type: data.token_type || "Bearer",
+  };
 }
 
 // Refresh an expired access token
