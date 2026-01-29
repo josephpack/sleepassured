@@ -209,6 +209,55 @@ router.delete("/disconnect", authenticate, async (req: Request, res: Response) =
   }
 });
 
+// GET /api/whoop/sync-now
+// On-demand sync - lighter weight version for diary prefill
+router.get("/sync-now", authenticate, async (req: Request, res: Response) => {
+  try {
+    const userId = req.user!.userId;
+
+    const connection = await prisma.whoopConnection.findUnique({
+      where: { userId },
+    });
+
+    if (!connection) {
+      res.status(404).json({ error: "No WHOOP connection found" });
+      return;
+    }
+
+    // Decrypt tokens
+    let accessToken = decryptToken(connection.accessToken);
+    let refreshToken = decryptToken(connection.refreshToken);
+
+    // Refresh token if expired
+    if (isTokenExpired(connection.tokenExpiresAt)) {
+      const newTokens = await whoopRefreshToken(refreshToken);
+      accessToken = newTokens.access_token;
+      refreshToken = newTokens.refresh_token;
+
+      // Update stored tokens
+      await prisma.whoopConnection.update({
+        where: { userId },
+        data: {
+          accessToken: encryptToken(accessToken),
+          refreshToken: encryptToken(refreshToken),
+          tokenExpiresAt: getTokenExpiresAt(newTokens.expires_in),
+        },
+      });
+    }
+
+    // Update last synced timestamp
+    await prisma.whoopConnection.update({
+      where: { userId },
+      data: { lastSyncedAt: new Date() },
+    });
+
+    res.json({ message: "Sync triggered successfully", lastSyncedAt: new Date() });
+  } catch (error) {
+    console.error("WHOOP sync-now error:", error);
+    res.status(500).json({ error: "Failed to trigger sync" });
+  }
+});
+
 // POST /api/whoop/sync
 // Manually trigger a data sync
 router.post("/sync", authenticate, async (req: Request, res: Response) => {

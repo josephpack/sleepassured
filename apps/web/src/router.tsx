@@ -4,6 +4,7 @@ import { SignupPage } from "@/pages/SignupPage";
 import { DashboardPage } from "@/pages/DashboardPage";
 import { SettingsPage } from "@/pages/SettingsPage";
 import { OnboardingPage } from "@/pages/OnboardingPage";
+import { DiaryPage } from "@/features/diary";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { PublicRoute } from "@/components/PublicRoute";
 import { AppLayout } from "@/components/AppLayout";
@@ -43,8 +44,10 @@ export const router = createBrowserRouter([
             path: "/onboarding",
             element: <OnboardingPage />,
           },
-          // Future routes:
-          // { path: "/diary", element: <DiaryPage /> },
+          {
+            path: "/diary",
+            element: <DiaryPage />,
+          },
         ],
       },
     ],

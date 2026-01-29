@@ -7,7 +7,10 @@ import authRoutes from "./routes/auth.js";
 import whoopRoutes from "./routes/whoop.js";
 import assessmentRoutes from "./routes/assessments.js";
 import userRoutes from "./routes/users.js";
+import diaryRoutes from "./routes/diary.js";
+import scheduleRoutes from "./routes/schedule.js";
 import { startWhoopSyncScheduler } from "./jobs/whoop-sync.js";
+import { startWeeklyAdjustmentScheduler } from "./jobs/weekly-adjustment.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -43,13 +46,16 @@ app.use("/api/auth", authRoutes);
 app.use("/api/whoop", whoopRoutes);
 app.use("/api/assessments", assessmentRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/diary", diaryRoutes);
+app.use("/api/schedule", scheduleRoutes);
 
 // Start server only if not in test mode
 if (process.env.NODE_ENV !== "test") {
   app.listen(PORT, () => {
     console.log(`🚀 API server running on http://localhost:${PORT}`);
-    // Start WHOOP sync scheduler
+    // Start scheduled jobs
     startWhoopSyncScheduler();
+    startWeeklyAdjustmentScheduler();
   });
 }
 

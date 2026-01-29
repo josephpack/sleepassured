@@ -14,6 +14,10 @@ model User {
   name                String
   targetWakeTime      String?   @map("target_wake_time") // HH:MM format
   onboardingCompleted Boolean   @default(false) @map("onboarding_completed")
+  therapyStartDate    DateTime? @map("therapy_start_date") @db.Date
+  baselineComplete    Boolean   @default(false) @map("baseline_complete")
+  flaggedForReview    Boolean   @default(false) @map("flagged_for_review")
+  flaggedReason       String?   @map("flagged_reason")
   createdAt           DateTime  @default(now()) @map("created_at")
   updatedAt           DateTime  @updatedAt @map("updated_at")
 
@@ -67,23 +71,24 @@ enum Mood {
 }
 
 model SleepDiary {
-  id                  String      @id @default(uuid())
-  userId              String      @map("user_id")
-  date                DateTime    @db.Date
-  timeInBed           DateTime    @map("time_in_bed")
-  timeOutOfBed        DateTime    @map("time_out_of_bed")
-  sleepOnsetLatency   Int?        @map("sleep_onset_latency") // minutes
-  wakeAfterSleepOnset Int?        @map("wake_after_sleep_onset") // minutes
-  totalSleepTime      Int         @map("total_sleep_time") // minutes
-  sleepEfficiency     Decimal     @map("sleep_efficiency") @db.Decimal(5, 2)
-  subjectiveQuality   Int         @map("subjective_quality") // 1-10
-  mood                Mood?
-  notes               String?
-  source              DiarySource @default(MANUAL)
-  whoopRecoveryScore  Int?        @map("whoop_recovery_score")
-  followedWindow      Boolean?    @map("followed_window")
-  createdAt           DateTime    @default(now()) @map("created_at")
-  updatedAt           DateTime    @updatedAt @map("updated_at")
+  id                      String      @id @default(uuid())
+  userId                  String      @map("user_id")
+  date                    DateTime    @db.Date
+  bedtime                 DateTime    // when user got into bed
+  sleepOnsetLatencyMins   Int         @map("sleep_onset_latency_mins") // time to fall asleep
+  numberOfAwakenings      Int         @map("number_of_awakenings")
+  wakeAfterSleepOnsetMins Int         @map("wake_after_sleep_onset_mins") // WASO
+  finalWakeTime           DateTime    @map("final_wake_time")
+  outOfBedTime            DateTime    @map("out_of_bed_time")
+  subjectiveQuality       Int         @map("subjective_quality") // 1-10
+  totalSleepTimeMins      Int         @map("total_sleep_time_mins") // calculated
+  timeInBedMins           Int         @map("time_in_bed_mins") // calculated
+  sleepEfficiency         Decimal     @map("sleep_efficiency") @db.Decimal(5, 2) // calculated: TST/TIB * 100
+  source                  DiarySource @default(MANUAL) // manual | whoop | hybrid
+  whoopSleepRecordId      String?     @map("whoop_sleep_record_id") // link to WHOOP record if pre-filled
+  notes                   String?
+  createdAt               DateTime    @default(now()) @map("created_at")
+  updatedAt               DateTime    @updatedAt @map("updated_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -95,25 +100,25 @@ enum WindowAdjustment {
   INCREASE
   DECREASE
   NONE
+  BASELINE
 }
 
 model SleepWindow {
-  id                  String            @id @default(uuid())
-  userId              String            @map("user_id")
-  weekNumber          Int               @map("week_number")
-  prescribedBedtime   String            @map("prescribed_bedtime") // HH:MM
-  prescribedWakeTime  String            @map("prescribed_wake_time") // HH:MM
-  timeInBedAllowed    Int               @map("time_in_bed_allowed") // minutes
-  startedAt           DateTime          @map("started_at") @db.Date
-  endedAt             DateTime?         @map("ended_at") @db.Date
-  sleepEfficiency     Decimal?          @map("sleep_efficiency") @db.Decimal(5, 2)
-  adherencePercentage Decimal?          @map("adherence_percentage") @db.Decimal(5, 2)
-  adjustmentApplied   WindowAdjustment? @map("adjustment_applied")
-  createdAt           DateTime          @default(now()) @map("created_at")
+  id                 String            @id @default(uuid())
+  userId             String            @map("user_id")
+  weekStartDate      DateTime          @map("week_start_date") @db.Date
+  prescribedBedtime  String            @map("prescribed_bedtime") // "23:30" format
+  prescribedWakeTime String            @map("prescribed_wake_time") // "06:30" format
+  timeInBedMins      Int               @map("time_in_bed_mins")
+  avgSleepEfficiency Decimal?          @map("avg_sleep_efficiency") @db.Decimal(5, 2)
+  adjustmentMade     WindowAdjustment? @map("adjustment_made") // increase | decrease | maintain | baseline
+  adjustmentMins     Int               @default(0) @map("adjustment_mins")
+  feedbackMessage    String?           @map("feedback_message") // warm motivational message
+  createdAt          DateTime          @default(now()) @map("created_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, weekNumber])
+  @@unique([userId, weekStartDate])
   @@map("sleep_windows")
 }
 
