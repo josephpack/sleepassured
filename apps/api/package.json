@@ -21,6 +21,7 @@
     "express-rate-limit": "^8.2.1",
     "helmet": "^8.0.0",
     "jsonwebtoken": "^9.0.3",
+    "openai": "^6.17.0",
     "zod": "^4.3.6"
   },
   "devDependencies": {

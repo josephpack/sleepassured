@@ -5,6 +5,10 @@ import {
   createSleepWindowFromAdjustment,
   WeeklyAdjustmentResult,
 } from "../services/cbti-engine.js";
+import {
+  buildUserContextFromDb,
+  generateCoachingMessage,
+} from "../services/coaching.js";
 
 interface AdjustmentJobResult {
   userId: string;
@@ -81,6 +85,34 @@ async function processUserAdjustment(userId: string): Promise<AdjustmentJobResul
 
     // Create the new sleep window record
     await createSleepWindowFromAdjustment(userId, weekStartDate, adjustment);
+
+    // Generate AI coaching message to replace the hardcoded one
+    try {
+      const context = await buildUserContextFromDb(userId, weekStartDate);
+      if (context) {
+        const coachingResult = await generateCoachingMessage(userId, context);
+
+        // Update the sleep window with the AI-generated message
+        const latestWindow = await prisma.sleepWindow.findFirst({
+          where: { userId },
+          orderBy: { weekStartDate: "desc" },
+        });
+
+        if (latestWindow) {
+          await prisma.sleepWindow.update({
+            where: { id: latestWindow.id },
+            data: { feedbackMessage: coachingResult.message },
+          });
+        }
+
+        console.log(
+          `[Weekly Adjustment] User ${userId}: AI coaching message generated (source: ${coachingResult.source})`
+        );
+      }
+    } catch (coachingError) {
+      // Log but don't fail the adjustment if AI message generation fails
+      console.error(`[Weekly Adjustment] User ${userId}: AI coaching failed, using fallback`, coachingError);
+    }
 
     return {
       userId,

@@ -9,6 +9,7 @@ import assessmentRoutes from "./routes/assessments.js";
 import userRoutes from "./routes/users.js";
 import diaryRoutes from "./routes/diary.js";
 import scheduleRoutes from "./routes/schedule.js";
+import coachingRoutes from "./routes/coaching.js";
 import { startWhoopSyncScheduler } from "./jobs/whoop-sync.js";
 import { startWeeklyAdjustmentScheduler } from "./jobs/weekly-adjustment.js";
 
@@ -48,6 +49,7 @@ app.use("/api/assessments", assessmentRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/diary", diaryRoutes);
 app.use("/api/schedule", scheduleRoutes);
+app.use("/api/coaching", coachingRoutes);
 
 // Start server only if not in test mode
 if (process.env.NODE_ENV !== "test") {
