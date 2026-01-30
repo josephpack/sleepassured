@@ -19,6 +19,8 @@ import {
   ChevronRight,
   Loader2,
   Clock,
+  MessageCircle,
+  AlertCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -108,6 +110,12 @@ export function DashboardPage() {
   const schedule = scheduleData?.schedule;
   const baselineStatus = scheduleData?.baselineStatus;
 
+  // Check if user has low sleep efficiency (below 80%)
+  const hasLowEfficiency =
+    schedule?.avgSleepEfficiency !== null &&
+    schedule?.avgSleepEfficiency !== undefined &&
+    schedule.avgSleepEfficiency < 80;
+
   return (
     <div className="min-h-screen bg-muted/30 p-4">
       <div className="mx-auto max-w-4xl">
@@ -150,6 +158,50 @@ export function DashboardPage() {
 
         {user?.onboardingCompleted && (
           <>
+            {/* Chat with Coach CTA - Above the fold */}
+            <Card className="mb-6 bg-gradient-to-r from-primary/10 via-primary/5 to-background border-primary/20">
+              <Link to="/chat" className="block">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
+                        <MessageCircle className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-lg">Chat with your Sleep Coach</CardTitle>
+                        <CardDescription>
+                          Get personalised advice based on your sleep data
+                        </CardDescription>
+                      </div>
+                    </div>
+                    <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                  </div>
+                </CardHeader>
+              </Link>
+            </Card>
+
+            {/* Low Efficiency Nudge */}
+            {!isLoading && hasLowEfficiency && (
+              <Card className="mb-6 border-amber-500/30 bg-amber-50/50 dark:bg-amber-950/20">
+                <Link to="/chat" className="block">
+                  <CardContent className="flex items-center gap-4 py-4">
+                    <div className="h-10 w-10 rounded-full bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center shrink-0">
+                      <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-amber-900 dark:text-amber-100">
+                        Your sleep efficiency was {schedule?.avgSleepEfficiency?.toFixed(0)}%
+                      </p>
+                      <p className="text-sm text-amber-700 dark:text-amber-300">
+                        Tap to chat with your coach for tips to improve
+                      </p>
+                    </div>
+                    <ChevronRight className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0" />
+                  </CardContent>
+                </Link>
+              </Card>
+            )}
+
             {/* Loading State */}
             {isLoading && (
               <Card className="mb-6">
