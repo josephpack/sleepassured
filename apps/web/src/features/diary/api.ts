@@ -66,6 +66,8 @@ export interface SleepSchedule {
   adjustmentMins: number;
   feedbackMessage: string | null;
   createdAt: string;
+  weekNumber: number | null;
+  adherencePercentage: number | null;
 }
 
 export interface BaselineStatus {

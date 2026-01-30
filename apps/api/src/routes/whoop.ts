@@ -387,4 +387,56 @@ router.post("/sync", authenticate, async (req: Request, res: Response) => {
   }
 });
 
+// GET /api/whoop/latest-recovery
+// Get the most recent recovery score
+router.get("/latest-recovery", authenticate, async (req: Request, res: Response) => {
+  try {
+    const userId = req.user!.userId;
+
+    // Check if user has WHOOP connected
+    const connection = await prisma.whoopConnection.findUnique({
+      where: { userId },
+      select: { id: true },
+    });
+
+    if (!connection) {
+      res.json({ connected: false, recovery: null });
+      return;
+    }
+
+    // Get the most recent sleep record with a recovery score
+    const latestRecord = await prisma.whoopSleepRecord.findFirst({
+      where: {
+        userId,
+        recoveryScore: { not: null },
+      },
+      orderBy: { endTime: "desc" },
+      select: {
+        recoveryScore: true,
+        endTime: true,
+        hrvRmssd: true,
+        restingHeartRate: true,
+      },
+    });
+
+    if (!latestRecord) {
+      res.json({ connected: true, recovery: null });
+      return;
+    }
+
+    res.json({
+      connected: true,
+      recovery: {
+        score: latestRecord.recoveryScore,
+        date: latestRecord.endTime,
+        hrvRmssd: latestRecord.hrvRmssd ? Number(latestRecord.hrvRmssd) : null,
+        restingHeartRate: latestRecord.restingHeartRate,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching latest recovery:", error);
+    res.status(500).json({ error: "Failed to fetch recovery data" });
+  }
+});
+
 export default router;

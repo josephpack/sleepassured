@@ -21,6 +21,7 @@ import {
   Clock,
   MessageCircle,
   AlertCircle,
+  Target,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -29,6 +30,8 @@ import {
   CurrentScheduleResponse,
 } from "@/features/diary/api";
 import { getDailyTip, SleepTip } from "@/data/sleepTips";
+import { EfficiencyChart } from "@/components/dashboard/EfficiencyChart";
+import { RecoveryCard } from "@/components/dashboard/RecoveryCard";
 
 // Format time from HH:MM to display format
 function formatTimeDisplay(timeStr: string): string {
@@ -121,7 +124,14 @@ export function DashboardPage() {
       <div className="mx-auto max-w-4xl">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-2xl font-bold">SleepAssured</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-bold">SleepAssured</h1>
+            {schedule?.weekNumber && (
+              <span className="rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
+                Week {schedule.weekNumber}
+              </span>
+            )}
+          </div>
           <div className="flex gap-2">
             <Button variant="outline" size="icon" asChild>
               <Link to="/settings">
@@ -266,13 +276,31 @@ export function DashboardPage() {
                     </div>
                   )}
 
-                  {/* Weekly efficiency */}
-                  {schedule.avgSleepEfficiency !== null && (
-                    <div className="mt-4 text-center text-sm text-muted-foreground">
-                      Last week's sleep efficiency:{" "}
-                      <span className="font-medium">
-                        {schedule.avgSleepEfficiency.toFixed(0)}%
-                      </span>
+                  {/* Weekly efficiency and adherence */}
+                  {(schedule.avgSleepEfficiency !== null || schedule.adherencePercentage !== null) && (
+                    <div className="mt-4 flex justify-center gap-6 text-sm text-muted-foreground">
+                      {schedule.avgSleepEfficiency !== null && (
+                        <div className="flex items-center gap-1">
+                          <TrendingUp className="h-4 w-4" />
+                          <span>
+                            Efficiency:{" "}
+                            <span className="font-medium">
+                              {schedule.avgSleepEfficiency.toFixed(0)}%
+                            </span>
+                          </span>
+                        </div>
+                      )}
+                      {schedule.adherencePercentage !== null && (
+                        <div className="flex items-center gap-1">
+                          <Target className="h-4 w-4" />
+                          <span>
+                            Adherence:{" "}
+                            <span className="font-medium">
+                              {schedule.adherencePercentage}%
+                            </span>
+                          </span>
+                        </div>
+                      )}
                     </div>
                   )}
                 </CardContent>
@@ -323,6 +351,20 @@ export function DashboardPage() {
                   )}
                 </CardContent>
               </Card>
+            )}
+
+            {/* Efficiency Chart (only show if has schedule) */}
+            {!isLoading && scheduleData?.hasSchedule && (
+              <div className="mb-6">
+                <EfficiencyChart />
+              </div>
+            )}
+
+            {/* WHOOP Recovery Card (hidden if not connected) */}
+            {!isLoading && scheduleData?.hasSchedule && (
+              <div className="mb-6">
+                <RecoveryCard />
+              </div>
             )}
 
             {/* Quick Actions */}

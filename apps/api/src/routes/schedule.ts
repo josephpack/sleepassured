@@ -5,6 +5,8 @@ import {
   getBaselineStatus,
   calculateBaselineSleepWindow,
   createSleepWindowFromAdjustment,
+  getTherapyWeekNumber,
+  calculateAdherencePercentage,
 } from "../services/cbti-engine.js";
 
 const router = Router();
@@ -31,6 +33,18 @@ router.get("/current", authenticate, async (req: Request, res: Response) => {
       return;
     }
 
+    // Get week number and adherence
+    const weekNumber = await getTherapyWeekNumber(userId);
+
+    // Calculate adherence for the current week
+    const weekStartDate = new Date(currentWindow.weekStartDate);
+    const today = new Date();
+    const adherencePercentage = await calculateAdherencePercentage(
+      userId,
+      weekStartDate,
+      today
+    );
+
     res.json({
       hasSchedule: true,
       schedule: {
@@ -46,6 +60,8 @@ router.get("/current", authenticate, async (req: Request, res: Response) => {
         adjustmentMins: currentWindow.adjustmentMins,
         feedbackMessage: currentWindow.feedbackMessage,
         createdAt: currentWindow.createdAt,
+        weekNumber,
+        adherencePercentage,
       },
     });
   } catch (error) {

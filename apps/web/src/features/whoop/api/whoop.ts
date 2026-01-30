@@ -30,3 +30,19 @@ export async function disconnectWhoop(): Promise<{ message: string }> {
 export async function syncWhoopData(): Promise<WhoopSyncResult> {
   return api<WhoopSyncResult>("/whoop/sync", { method: "POST" });
 }
+
+export interface WhoopRecovery {
+  score: number;
+  date: string;
+  hrvRmssd: number | null;
+  restingHeartRate: number | null;
+}
+
+export interface WhoopRecoveryResponse {
+  connected: boolean;
+  recovery: WhoopRecovery | null;
+}
+
+export async function getLatestRecovery(): Promise<WhoopRecoveryResponse> {
+  return api<WhoopRecoveryResponse>("/whoop/latest-recovery");
+}

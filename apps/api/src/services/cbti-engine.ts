@@ -356,6 +356,98 @@ export async function createSleepWindowFromAdjustment(
   });
 }
 
+// Calculate the current therapy week number
+export async function getTherapyWeekNumber(userId: string): Promise<number | null> {
+  // Count the number of sleep windows - each represents a week
+  const windowCount = await prisma.sleepWindow.count({
+    where: { userId },
+  });
+
+  if (windowCount === 0) {
+    return null; // Still in baseline
+  }
+
+  return windowCount;
+}
+
+// Calculate adherence percentage for a given period
+// Adherence = % of nights where actual sleep times were within ±30 min of prescribed
+export async function calculateAdherencePercentage(
+  userId: string,
+  startDate: Date,
+  endDate: Date
+): Promise<number | null> {
+  // Get the sleep window active during this period
+  const sleepWindow = await prisma.sleepWindow.findFirst({
+    where: {
+      userId,
+      weekStartDate: { lte: endDate },
+    },
+    orderBy: { weekStartDate: "desc" },
+  });
+
+  if (!sleepWindow) {
+    return null;
+  }
+
+  // Get diary entries for the period
+  const entries = await prisma.sleepDiary.findMany({
+    where: {
+      userId,
+      date: {
+        gte: startDate,
+        lte: endDate,
+      },
+    },
+    select: {
+      bedtime: true,
+      outOfBedTime: true,
+    },
+  });
+
+  if (entries.length === 0) {
+    return null;
+  }
+
+  // Parse prescribed times to minutes from midnight
+  const prescribedBedtimeParts = sleepWindow.prescribedBedtime.split(":").map(Number);
+  const prescribedBedtimeHour = prescribedBedtimeParts[0] ?? 0;
+  const prescribedBedtimeMin = prescribedBedtimeParts[1] ?? 0;
+  let prescribedBedtimeMins = prescribedBedtimeHour * 60 + prescribedBedtimeMin;
+  // Adjust for times after midnight (e.g., 23:00 = -60 mins from midnight conceptually)
+  if (prescribedBedtimeHour >= 12) {
+    prescribedBedtimeMins = prescribedBedtimeMins - 24 * 60;
+  }
+
+  const prescribedWakeTimeParts = sleepWindow.prescribedWakeTime.split(":").map(Number);
+  const prescribedWakeTimeHour = prescribedWakeTimeParts[0] ?? 0;
+  const prescribedWakeTimeMin = prescribedWakeTimeParts[1] ?? 0;
+  const prescribedWakeTimeMins = prescribedWakeTimeHour * 60 + prescribedWakeTimeMin;
+
+  const TOLERANCE_MINS = 30;
+  let adherentNights = 0;
+
+  for (const entry of entries) {
+    const actualBedtime = new Date(entry.bedtime);
+    let actualBedtimeMins = actualBedtime.getHours() * 60 + actualBedtime.getMinutes();
+    if (actualBedtime.getHours() >= 12) {
+      actualBedtimeMins = actualBedtimeMins - 24 * 60;
+    }
+
+    const actualWakeTime = new Date(entry.outOfBedTime);
+    const actualWakeTimeMins = actualWakeTime.getHours() * 60 + actualWakeTime.getMinutes();
+
+    const bedtimeDiff = Math.abs(actualBedtimeMins - prescribedBedtimeMins);
+    const wakeTimeDiff = Math.abs(actualWakeTimeMins - prescribedWakeTimeMins);
+
+    if (bedtimeDiff <= TOLERANCE_MINS && wakeTimeDiff <= TOLERANCE_MINS) {
+      adherentNights++;
+    }
+  }
+
+  return Math.round((adherentNights / entries.length) * 100);
+}
+
 // Get baseline progress status
 export async function getBaselineStatus(
   userId: string
