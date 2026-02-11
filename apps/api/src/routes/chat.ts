@@ -1,5 +1,6 @@
 import { Router, Request, Response } from "express";
 import { authenticate } from "../middleware/auth.js";
+import logger from "../lib/logger.js";
 import {
   sendChatMessage,
   getQuickReplyContext,
@@ -54,7 +55,7 @@ router.post("/", authenticate, async (req: Request, res: Response) => {
       source: result.source,
     });
   } catch (error) {
-    console.error("Chat error:", error);
+    logger.error({ err: error }, "Chat error");
     res.status(500).json({ error: "Failed to process message" });
   }
 });
@@ -93,7 +94,7 @@ router.get("/context", authenticate, async (req: Request, res: Response) => {
       baselineComplete: context.baselineComplete,
     });
   } catch (error) {
-    console.error("Get chat context error:", error);
+    logger.error({ err: error }, "Get chat context error");
     res.status(500).json({ error: "Failed to get context" });
   }
 });
@@ -131,7 +132,7 @@ router.get("/quick-replies", authenticate, async (req: Request, res: Response) =
       },
     });
   } catch (error) {
-    console.error("Get quick replies error:", error);
+    logger.error({ err: error }, "Get quick replies error");
     res.status(500).json({ error: "Failed to get quick replies" });
   }
 });

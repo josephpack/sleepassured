@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import { prisma } from "@sleepassured/db";
 import { authenticate } from "../middleware/auth.js";
+import logger from "../lib/logger.js";
 import {
   generateWeeklyCoachingMessage,
   buildUserContextFromDb,
@@ -83,7 +84,7 @@ router.get("/weekly", authenticate, async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
-    console.error("Get weekly coaching error:", error);
+    logger.error({ err: error }, "Get weekly coaching error");
     res.status(500).json({ error: "Failed to get coaching message" });
   }
 });
@@ -139,7 +140,7 @@ router.post("/regenerate", authenticate, async (req: Request, res: Response) => 
       },
     });
   } catch (error) {
-    console.error("Regenerate coaching error:", error);
+    logger.error({ err: error }, "Regenerate coaching error");
     res.status(500).json({ error: "Failed to regenerate coaching message" });
   }
 });
@@ -187,7 +188,7 @@ router.get("/context", authenticate, async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
-    console.error("Get coaching context error:", error);
+    logger.error({ err: error }, "Get coaching context error");
     res.status(500).json({ error: "Failed to get coaching context" });
   }
 });
@@ -219,7 +220,7 @@ router.get("/audit", authenticate, async (req: Request, res: Response) => {
       })),
     });
   } catch (error) {
-    console.error("Get audit log error:", error);
+    logger.error({ err: error }, "Get audit log error");
     res.status(500).json({ error: "Failed to get audit log" });
   }
 });

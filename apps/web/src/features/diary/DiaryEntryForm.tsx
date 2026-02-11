@@ -281,7 +281,7 @@ export function DiaryEntryForm({
               id="bedtime"
               type="time"
               {...register("bedtime")}
-              className="max-w-[150px]"
+              className="w-full sm:max-w-[150px]"
             />
             {errors.bedtime && (
               <p className="text-sm text-destructive">{errors.bedtime.message}</p>
@@ -299,7 +299,7 @@ export function DiaryEntryForm({
               min={0}
               max={600}
               {...register("sleepOnsetLatencyMins", { valueAsNumber: true })}
-              className="max-w-[120px]"
+              className="w-full sm:max-w-[120px]"
             />
             {errors.sleepOnsetLatencyMins && (
               <p className="text-sm text-destructive">
@@ -319,7 +319,7 @@ export function DiaryEntryForm({
               min={0}
               max={50}
               {...register("numberOfAwakenings", { valueAsNumber: true })}
-              className="max-w-[120px]"
+              className="w-full sm:max-w-[120px]"
             />
             {errors.numberOfAwakenings && (
               <p className="text-sm text-destructive">
@@ -339,7 +339,7 @@ export function DiaryEntryForm({
               min={0}
               max={600}
               {...register("wakeAfterSleepOnsetMins", { valueAsNumber: true })}
-              className="max-w-[120px]"
+              className="w-full sm:max-w-[120px]"
             />
             <p className="text-xs text-muted-foreground">
               Estimate the total time you spent awake after first falling asleep
@@ -360,7 +360,7 @@ export function DiaryEntryForm({
               id="finalWakeTime"
               type="time"
               {...register("finalWakeTime")}
-              className="max-w-[150px]"
+              className="w-full sm:max-w-[150px]"
             />
             {errors.finalWakeTime && (
               <p className="text-sm text-destructive">
@@ -376,7 +376,7 @@ export function DiaryEntryForm({
               id="outOfBedTime"
               type="time"
               {...register("outOfBedTime")}
-              className="max-w-[150px]"
+              className="w-full sm:max-w-[150px]"
             />
             {errors.outOfBedTime && (
               <p className="text-sm text-destructive">

@@ -120,25 +120,25 @@ export function DashboardPage() {
     schedule.avgSleepEfficiency < 80;
 
   return (
-    <div className="min-h-screen bg-muted/30 p-4">
+    <div className="min-h-screen bg-muted/30 p-4 pb-safe">
       <div className="mx-auto max-w-4xl">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold">SleepAssured</h1>
+        <div className="flex items-center justify-between mb-6 sm:mb-8 gap-2">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            <h1 className="text-xl sm:text-2xl font-bold truncate">SleepAssured</h1>
             {schedule?.weekNumber && (
-              <span className="rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
+              <span className="rounded-full bg-primary/10 px-2 sm:px-3 py-1 text-xs sm:text-sm font-medium text-primary whitespace-nowrap">
                 Week {schedule.weekNumber}
               </span>
             )}
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="icon" asChild>
+          <div className="flex gap-2 shrink-0">
+            <Button variant="outline" size="icon" asChild className="h-10 w-10">
               <Link to="/settings">
                 <Settings className="h-4 w-4" />
               </Link>
             </Button>
-            <Button variant="outline" onClick={logout}>
+            <Button variant="outline" onClick={logout} className="min-h-[44px]">
               Sign Out
             </Button>
           </div>
@@ -234,22 +234,22 @@ export function DashboardPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-2 gap-6 mb-4">
-                    <div className="text-center p-4 bg-muted/50 rounded-lg">
+                  <div className="grid grid-cols-2 gap-3 sm:gap-6 mb-4">
+                    <div className="text-center p-3 sm:p-4 bg-muted/50 rounded-lg">
                       <div className="flex items-center justify-center gap-2 text-muted-foreground mb-2">
                         <Moon className="h-4 w-4" />
                         <span className="text-sm">Bedtime</span>
                       </div>
-                      <span className="text-2xl font-bold">
+                      <span className="text-xl sm:text-2xl font-bold">
                         {formatTimeDisplay(schedule.prescribedBedtime)}
                       </span>
                     </div>
-                    <div className="text-center p-4 bg-muted/50 rounded-lg">
+                    <div className="text-center p-3 sm:p-4 bg-muted/50 rounded-lg">
                       <div className="flex items-center justify-center gap-2 text-muted-foreground mb-2">
                         <Sun className="h-4 w-4" />
                         <span className="text-sm">Wake Time</span>
                       </div>
-                      <span className="text-2xl font-bold">
+                      <span className="text-xl sm:text-2xl font-bold">
                         {formatTimeDisplay(schedule.prescribedWakeTime)}
                       </span>
                     </div>
@@ -278,7 +278,7 @@ export function DashboardPage() {
 
                   {/* Weekly efficiency and adherence */}
                   {(schedule.avgSleepEfficiency !== null || schedule.adherencePercentage !== null) && (
-                    <div className="mt-4 flex justify-center gap-6 text-sm text-muted-foreground">
+                    <div className="mt-4 flex flex-wrap justify-center gap-4 sm:gap-6 text-sm text-muted-foreground">
                       {schedule.avgSleepEfficiency !== null && (
                         <div className="flex items-center gap-1">
                           <TrendingUp className="h-4 w-4" />
@@ -368,9 +368,9 @@ export function DashboardPage() {
             )}
 
             {/* Quick Actions */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
               <Card className="hover:bg-muted/50 transition-colors">
-                <Link to="/diary" className="block">
+                <Link to="/diary" className="block min-h-[44px]">
                   <CardHeader>
                     <CardTitle className="text-lg flex items-center gap-2">
                       <Plus className="h-5 w-5 text-primary" />
@@ -384,7 +384,7 @@ export function DashboardPage() {
               </Card>
 
               <Card className="hover:bg-muted/50 transition-colors">
-                <Link to="/diary" className="block">
+                <Link to="/diary" className="block min-h-[44px]">
                   <CardHeader>
                     <CardTitle className="text-lg flex items-center gap-2">
                       <Moon className="h-5 w-5 text-primary" />

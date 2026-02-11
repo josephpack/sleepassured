@@ -33,23 +33,24 @@ export function DiaryPage() {
   };
 
   return (
-    <div className="min-h-screen bg-muted/30 py-8">
+    <div className="min-h-screen bg-muted/30 py-6 sm:py-8">
       <div className="container max-w-2xl mx-auto px-4">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-4">
+        <div className="flex items-center justify-between mb-6 gap-2">
+          <div className="flex items-center gap-2 sm:gap-4 min-w-0">
             <Link to="/">
-              <Button variant="ghost" size="sm">
-                <ChevronLeft className="h-4 w-4 mr-1" />
-                Dashboard
+              <Button variant="ghost" size="sm" className="min-h-[44px] min-w-[44px] px-2 sm:px-3">
+                <ChevronLeft className="h-4 w-4 sm:mr-1" />
+                <span className="hidden sm:inline">Dashboard</span>
               </Button>
             </Link>
-            <h1 className="text-2xl font-bold">Sleep Diary</h1>
+            <h1 className="text-xl sm:text-2xl font-bold truncate">Sleep Diary</h1>
           </div>
           {!showForm && (
-            <Button onClick={handleNewEntry}>
-              <Plus className="h-4 w-4 mr-2" />
-              Log Sleep
+            <Button onClick={handleNewEntry} className="min-h-[44px] shrink-0">
+              <Plus className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Log Sleep</span>
+              <span className="sm:hidden">Log</span>
             </Button>
           )}
         </div>

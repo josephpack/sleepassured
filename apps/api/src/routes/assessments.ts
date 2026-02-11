@@ -2,6 +2,7 @@ import { Router, Request, Response } from "express";
 import { z } from "zod";
 import { prisma } from "@sleepassured/db";
 import { authenticate } from "../middleware/auth.js";
+import logger from "../lib/logger.js";
 
 const router = Router();
 
@@ -68,7 +69,7 @@ router.post("/isi", authenticate, async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
-    console.error("ISI assessment error:", error);
+    logger.error({ err: error }, "ISI assessment error");
     res.status(500).json({ error: "Failed to save assessment" });
   }
 });
@@ -114,7 +115,7 @@ router.get("/isi/latest", authenticate, async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
-    console.error("Get ISI assessment error:", error);
+    logger.error({ err: error }, "Get ISI assessment error");
     res.status(500).json({ error: "Failed to fetch assessment" });
   }
 });
@@ -137,7 +138,7 @@ router.get("/isi/history", authenticate, async (req: Request, res: Response) => 
 
     res.json({ assessments });
   } catch (error) {
-    console.error("Get ISI history error:", error);
+    logger.error({ err: error }, "Get ISI history error");
     res.status(500).json({ error: "Failed to fetch assessments" });
   }
 });

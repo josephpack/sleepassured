@@ -1,5 +1,6 @@
 import { prisma } from "@sleepassured/db";
 import { Decimal } from "@prisma/client/runtime/library";
+import logger from "../lib/logger.js";
 
 // Constants for the CBT-I algorithm
 const MIN_TIME_IN_BED_MINS = 300; // 5 hours minimum
@@ -212,7 +213,7 @@ export async function calculateBaselineSleepWindow(
       flagReason: flagged ? `Low baseline SE: ${avgEfficiency.toFixed(1)}%` : undefined,
     };
   } catch (error) {
-    console.error("Baseline calculation error:", error);
+    logger.error({ err: error }, "Baseline calculation error");
     return {
       status: "error",
       error: "Failed to calculate baseline sleep window",
@@ -296,7 +297,7 @@ export async function calculateWeeklyAdjustment(
       flagReason,
     };
   } catch (error) {
-    console.error("Weekly adjustment calculation error:", error);
+    logger.error({ err: error }, "Weekly adjustment calculation error");
     return {
       status: "error",
       error: "Failed to calculate weekly adjustment",

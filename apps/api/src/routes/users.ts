@@ -2,6 +2,7 @@ import { Router, Request, Response } from "express";
 import { z } from "zod";
 import { prisma } from "@sleepassured/db";
 import { authenticate } from "../middleware/auth.js";
+import logger from "../lib/logger.js";
 
 const router = Router();
 
@@ -56,7 +57,7 @@ router.patch("/me", authenticate, async (req: Request, res: Response) => {
 
     res.json({ user });
   } catch (error) {
-    console.error("Update profile error:", error);
+    logger.error({ err: error }, "Update profile error");
     res.status(500).json({ error: "Failed to update profile" });
   }
 });
@@ -98,7 +99,7 @@ router.get("/me", authenticate, async (req: Request, res: Response) => {
 
     res.json({ user });
   } catch (error) {
-    console.error("Get profile error:", error);
+    logger.error({ err: error }, "Get profile error");
     res.status(500).json({ error: "Failed to fetch profile" });
   }
 });

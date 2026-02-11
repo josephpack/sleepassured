@@ -2,6 +2,7 @@ import { Router, Request, Response } from "express";
 import crypto from "crypto";
 import { prisma } from "@sleepassured/db";
 import { authenticate } from "../middleware/auth.js";
+import logger from "../lib/logger.js";
 import {
   getAuthorizationUrl,
   exchangeCodeForTokens,
@@ -60,11 +61,11 @@ router.get("/auth-url", authenticate, async (req: Request, res: Response) => {
     });
 
     const authUrl = getAuthorizationUrl(state);
-    console.log("[WHOOP] Generated auth URL:", authUrl);
+    logger.debug({ authUrl }, "Generated WHOOP auth URL");
 
     res.json({ authUrl });
   } catch (error) {
-    console.error("Error generating auth URL:", error);
+    logger.error({ err: error }, "Error generating auth URL");
     res.status(500).json({ error: "Failed to generate authorization URL" });
   }
 });
@@ -141,7 +142,7 @@ router.get("/callback", async (req: Request, res: Response) => {
 
     res.redirect(`${frontendUrl}/settings?whoop_connected=true`);
   } catch (error) {
-    console.error("WHOOP callback error:", error);
+    logger.error({ err: error }, "WHOOP callback error");
     const frontendUrl =
       process.env.NODE_ENV === "production"
         ? process.env.FRONTEND_URL
@@ -176,7 +177,7 @@ router.get("/status", authenticate, async (req: Request, res: Response) => {
       lastSyncedAt: connection.lastSyncedAt,
     });
   } catch (error) {
-    console.error("Error checking WHOOP status:", error);
+    logger.error({ err: error }, "Error checking WHOOP status");
     res.status(500).json({ error: "Failed to check connection status" });
   }
 });
@@ -204,7 +205,7 @@ router.delete("/disconnect", authenticate, async (req: Request, res: Response) =
 
     res.json({ message: "WHOOP account disconnected successfully" });
   } catch (error) {
-    console.error("Error disconnecting WHOOP:", error);
+    logger.error({ err: error }, "Error disconnecting WHOOP");
     res.status(500).json({ error: "Failed to disconnect WHOOP account" });
   }
 });
@@ -253,7 +254,7 @@ router.get("/sync-now", authenticate, async (req: Request, res: Response) => {
 
     res.json({ message: "Sync triggered successfully", lastSyncedAt: new Date() });
   } catch (error) {
-    console.error("WHOOP sync-now error:", error);
+    logger.error({ err: error }, "WHOOP sync-now error");
     res.status(500).json({ error: "Failed to trigger sync" });
   }
 });
@@ -382,7 +383,7 @@ router.post("/sync", authenticate, async (req: Request, res: Response) => {
       recordsSynced: syncedCount,
     });
   } catch (error) {
-    console.error("WHOOP sync error:", error);
+    logger.error({ err: error }, "WHOOP sync error");
     res.status(500).json({ error: "Failed to sync WHOOP data" });
   }
 });
@@ -434,7 +435,7 @@ router.get("/latest-recovery", authenticate, async (req: Request, res: Response)
       },
     });
   } catch (error) {
-    console.error("Error fetching latest recovery:", error);
+    logger.error({ err: error }, "Error fetching latest recovery");
     res.status(500).json({ error: "Failed to fetch recovery data" });
   }
 });

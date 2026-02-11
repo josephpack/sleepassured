@@ -9,6 +9,7 @@ import {
   isTokenExpired,
   WhoopRecoveryRecord,
 } from "../services/whoop.js";
+import logger from "../lib/logger.js";
 
 interface SyncResult {
   userId: string;
@@ -50,7 +51,7 @@ async function syncUserData(userId: string): Promise<SyncResult> {
         });
       } catch (error) {
         // Token refresh failed - user may need to re-authenticate
-        console.error(`Token refresh failed for user ${userId}:`, error);
+        logger.error({ err: error, userId }, "Token refresh failed");
         return {
           userId,
           success: false,
@@ -144,7 +145,7 @@ async function syncUserData(userId: string): Promise<SyncResult> {
 
     return { userId, success: true, recordsSynced: syncedCount };
   } catch (error) {
-    console.error(`Sync failed for user ${userId}:`, error);
+    logger.error({ err: error, userId }, "WHOOP sync failed for user");
     return {
       userId,
       success: false,
@@ -160,14 +161,14 @@ export async function runWhoopSyncJob(): Promise<{
   failed: number;
   results: SyncResult[];
 }> {
-  console.log("[WHOOP Sync] Starting daily sync job...");
+  logger.info("Starting daily WHOOP sync job");
 
   // Get all users with WHOOP connections
   const connections = await prisma.whoopConnection.findMany({
     select: { userId: true },
   });
 
-  console.log(`[WHOOP Sync] Found ${connections.length} connected users`);
+  logger.info({ count: connections.length }, "Found connected WHOOP users");
 
   const results: SyncResult[] = [];
 
@@ -177,13 +178,9 @@ export async function runWhoopSyncJob(): Promise<{
     results.push(result);
 
     if (result.success) {
-      console.log(
-        `[WHOOP Sync] User ${connection.userId}: Synced ${result.recordsSynced} records`
-      );
+      logger.info({ userId: connection.userId, recordsSynced: result.recordsSynced }, "WHOOP sync completed for user");
     } else {
-      console.error(
-        `[WHOOP Sync] User ${connection.userId}: Failed - ${result.error}`
-      );
+      logger.error({ userId: connection.userId, error: result.error }, "WHOOP sync failed for user");
     }
 
     // Small delay between users to avoid rate limiting
@@ -193,9 +190,7 @@ export async function runWhoopSyncJob(): Promise<{
   const successful = results.filter((r) => r.success).length;
   const failed = results.filter((r) => !r.success).length;
 
-  console.log(
-    `[WHOOP Sync] Completed: ${successful} successful, ${failed} failed`
-  );
+  logger.info({ successful, failed }, "WHOOP sync job completed");
 
   return {
     totalUsers: connections.length,
@@ -221,9 +216,7 @@ export function startWhoopSyncScheduler(): void {
 
   const msUntilNext9AM = next9AM.getTime() - now.getTime();
 
-  console.log(
-    `[WHOOP Sync] Scheduler started. First run at ${next9AM.toISOString()}`
-  );
+  logger.info({ firstRun: next9AM.toISOString() }, "WHOOP sync scheduler started");
 
   // Run at the first 9 AM
   setTimeout(async () => {
@@ -240,6 +233,6 @@ export function stopWhoopSyncScheduler(): void {
   if (syncInterval) {
     clearInterval(syncInterval);
     syncInterval = null;
-    console.log("[WHOOP Sync] Scheduler stopped");
+    logger.info("WHOOP sync scheduler stopped");
   }
 }

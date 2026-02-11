@@ -3,6 +3,9 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
+import pinoHttp from "pino-http";
+import logger from "./lib/logger.js";
+import { errorHandler } from "./middleware/errorHandler.js";
 import authRoutes from "./routes/auth.js";
 import whoopRoutes from "./routes/whoop.js";
 import assessmentRoutes from "./routes/assessments.js";
@@ -30,6 +33,18 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 
+// Request logging (skip in test to reduce noise)
+if (process.env.NODE_ENV !== "test") {
+  app.use(
+    pinoHttp({
+      logger,
+      autoLogging: {
+        ignore: (req) => req.url === "/health",
+      },
+    })
+  );
+}
+
 // Health check
 app.get("/health", (_req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
@@ -53,10 +68,13 @@ app.use("/api/schedule", scheduleRoutes);
 app.use("/api/coaching", coachingRoutes);
 app.use("/api/chat", chatRoutes);
 
+// Global error handler (must be after routes)
+app.use(errorHandler);
+
 // Start server only if not in test mode
 if (process.env.NODE_ENV !== "test") {
   app.listen(PORT, () => {
-    console.log(`🚀 API server running on http://localhost:${PORT}`);
+    logger.info(`API server running on http://localhost:${PORT}`);
     // Start scheduled jobs
     startWhoopSyncScheduler();
     startWeeklyAdjustmentScheduler();

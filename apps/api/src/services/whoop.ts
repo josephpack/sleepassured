@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import logger from "../lib/logger.js";
 
 // WHOOP API configuration
 const WHOOP_API_BASE = "https://api.prod.whoop.com/developer";
@@ -135,9 +136,7 @@ export function decryptToken(encryptedToken: string): string {
 
 // Generate the OAuth authorization URL
 export function getAuthorizationUrl(state: string): string {
-  console.log("[WHOOP Debug] Client ID:", WHOOP_CLIENT_ID);
-  console.log("[WHOOP Debug] Redirect URI:", WHOOP_REDIRECT_URI);
-  console.log("[WHOOP Debug] Scopes:", WHOOP_SCOPES.join(" "));
+  logger.debug({ clientId: WHOOP_CLIENT_ID, redirectUri: WHOOP_REDIRECT_URI, scopes: WHOOP_SCOPES.join(" ") }, "WHOOP auth config");
 
   const params = new URLSearchParams({
     client_id: WHOOP_CLIENT_ID,
@@ -179,7 +178,7 @@ export async function exchangeCodeForTokens(
     expires_in?: number;
     token_type?: string;
   };
-  console.log("[WHOOP Debug] Token response keys:", Object.keys(data));
+  logger.debug({ keys: Object.keys(data) }, "WHOOP token response");
 
   // WHOOP may not always return refresh_token - use access_token as fallback
   return {

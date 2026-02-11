@@ -9,7 +9,12 @@ beforeAll(async () => {
 });
 
 afterEach(async () => {
-  // Clean up test data after each test
+  // Clean up test data after each test (order matters for FK constraints)
+  await prisma.whoopSleepRecord.deleteMany();
+  await prisma.whoopConnection.deleteMany();
+  await prisma.sleepWindow.deleteMany();
+  await prisma.sleepDiary.deleteMany();
+  await prisma.iSIAssessment.deleteMany();
   await prisma.refreshToken.deleteMany();
   await prisma.user.deleteMany();
 });

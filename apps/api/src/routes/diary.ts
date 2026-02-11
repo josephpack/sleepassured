@@ -2,6 +2,7 @@ import { Router, Request, Response } from "express";
 import { z } from "zod";
 import { prisma } from "@sleepassured/db";
 import { authenticate } from "../middleware/auth.js";
+import logger from "../lib/logger.js";
 import {
   decryptToken,
   isTokenExpired,
@@ -171,7 +172,7 @@ router.post("/", authenticate, async (req: Request, res: Response) => {
 
     res.status(201).json({ entry });
   } catch (error) {
-    console.error("Create diary entry error:", error);
+    logger.error({ err: error }, "Create diary entry error");
     res.status(500).json({ error: "Failed to create diary entry" });
   }
 });
@@ -202,7 +203,7 @@ router.get("/", authenticate, async (req: Request, res: Response) => {
 
     res.json({ entries });
   } catch (error) {
-    console.error("Get diary entries error:", error);
+    logger.error({ err: error }, "Get diary entries error");
     res.status(500).json({ error: "Failed to fetch diary entries" });
   }
 });
@@ -238,7 +239,7 @@ router.get("/:date", authenticate, async (req: Request, res: Response) => {
 
     res.json({ entry });
   } catch (error) {
-    console.error("Get diary entry error:", error);
+    logger.error({ err: error }, "Get diary entry error");
     res.status(500).json({ error: "Failed to fetch diary entry" });
   }
 });
@@ -330,7 +331,7 @@ router.put("/:date", authenticate, async (req: Request, res: Response) => {
 
     res.json({ entry });
   } catch (error) {
-    console.error("Update diary entry error:", error);
+    logger.error({ err: error }, "Update diary entry error");
     res.status(500).json({ error: "Failed to update diary entry" });
   }
 });
@@ -379,7 +380,7 @@ router.delete("/:date", authenticate, async (req: Request, res: Response) => {
 
     res.json({ message: "Entry deleted successfully" });
   } catch (error) {
-    console.error("Delete diary entry error:", error);
+    logger.error({ err: error }, "Delete diary entry error");
     res.status(500).json({ error: "Failed to delete diary entry" });
   }
 });
@@ -552,11 +553,11 @@ router.get("/prefill/:date", authenticate, async (req: Request, res: Response) =
 
       res.json({ prefillData });
     } catch (error) {
-      console.error("WHOOP data fetch error:", error);
+      logger.error({ err: error }, "WHOOP data fetch error");
       res.json({ prefillData: null, message: "Failed to fetch WHOOP data" });
     }
   } catch (error) {
-    console.error("Prefill error:", error);
+    logger.error({ err: error }, "Prefill error");
     res.status(500).json({ error: "Failed to get prefill data" });
   }
 });

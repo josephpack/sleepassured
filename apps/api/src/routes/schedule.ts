@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import { prisma } from "@sleepassured/db";
 import { authenticate } from "../middleware/auth.js";
+import logger from "../lib/logger.js";
 import {
   getBaselineStatus,
   calculateBaselineSleepWindow,
@@ -65,7 +66,7 @@ router.get("/current", authenticate, async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
-    console.error("Get current schedule error:", error);
+    logger.error({ err: error }, "Get current schedule error");
     res.status(500).json({ error: "Failed to fetch current schedule" });
   }
 });
@@ -98,7 +99,7 @@ router.get("/history", authenticate, async (req: Request, res: Response) => {
       })),
     });
   } catch (error) {
-    console.error("Get schedule history error:", error);
+    logger.error({ err: error }, "Get schedule history error");
     res.status(500).json({ error: "Failed to fetch schedule history" });
   }
 });
@@ -112,7 +113,7 @@ router.get("/baseline-status", authenticate, async (req: Request, res: Response)
 
     res.json(status);
   } catch (error) {
-    console.error("Get baseline status error:", error);
+    logger.error({ err: error }, "Get baseline status error");
     res.status(500).json({ error: "Failed to fetch baseline status" });
   }
 });
@@ -195,7 +196,7 @@ router.post("/initialize", authenticate, async (req: Request, res: Response) => 
       },
     });
   } catch (error) {
-    console.error("Initialize schedule error:", error);
+    logger.error({ err: error }, "Initialize schedule error");
     res.status(500).json({ error: "Failed to initialize sleep schedule" });
   }
 });

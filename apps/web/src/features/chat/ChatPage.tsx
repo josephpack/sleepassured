@@ -162,7 +162,7 @@ export function ChatPage() {
               }`}
             >
               <div
-                className={`max-w-[85%] rounded-2xl px-4 py-3 ${
+                className={`max-w-[90%] sm:max-w-[85%] rounded-2xl px-4 py-3 ${
                   message.role === "user"
                     ? "bg-primary text-primary-foreground"
                     : "bg-muted"
@@ -192,7 +192,7 @@ export function ChatPage() {
       </div>
 
       {/* Input Area */}
-      <div className="border-t bg-background p-4">
+      <div className="border-t bg-background p-4 pb-safe">
         <div className="max-w-2xl mx-auto">
           <div className="flex items-end gap-2 bg-muted rounded-2xl px-4 py-2">
             <textarea

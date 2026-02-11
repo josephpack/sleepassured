@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import { z } from "zod";
 import { prisma } from "@sleepassured/db";
+import logger from "../lib/logger.js";
 import { hashPassword, verifyPassword } from "../lib/password.js";
 import {
   generateAccessToken,
@@ -97,7 +98,7 @@ router.post("/signup", authRateLimiter, async (req: Request, res: Response) => {
       accessToken,
     });
   } catch (error) {
-    console.error("Signup error:", error);
+    logger.error({ err: error }, "Signup error");
     res.status(500).json({ error: "Internal server error" });
   }
 });
@@ -159,7 +160,7 @@ router.post("/login", authRateLimiter, async (req: Request, res: Response) => {
       accessToken,
     });
   } catch (error) {
-    console.error("Login error:", error);
+    logger.error({ err: error }, "Login error");
     res.status(500).json({ error: "Internal server error" });
   }
 });
@@ -180,7 +181,7 @@ router.post("/logout", async (req: Request, res: Response) => {
     res.clearCookie("refreshToken", { path: "/" });
     res.json({ message: "Logged out successfully" });
   } catch (error) {
-    console.error("Logout error:", error);
+    logger.error({ err: error }, "Logout error");
     res.status(500).json({ error: "Internal server error" });
   }
 });
@@ -226,7 +227,7 @@ router.post("/refresh", refreshRateLimiter, async (req: Request, res: Response) 
 
     res.json({ accessToken });
   } catch (error) {
-    console.error("Refresh error:", error);
+    logger.error({ err: error }, "Refresh error");
     res.status(500).json({ error: "Internal server error" });
   }
 });
@@ -252,7 +253,7 @@ router.get("/me", authenticate, async (req: Request, res: Response) => {
 
     res.json({ user });
   } catch (error) {
-    console.error("Get user error:", error);
+    logger.error({ err: error }, "Get user error");
     res.status(500).json({ error: "Internal server error" });
   }
 });

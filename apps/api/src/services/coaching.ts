@@ -1,5 +1,6 @@
 import OpenAI from "openai";
 import { prisma } from "@sleepassured/db";
+import logger from "../lib/logger.js";
 
 // Lazy-initialize OpenAI client (only when API key is available)
 let openai: OpenAI | null = null;
@@ -179,7 +180,7 @@ async function checkModeration(text: string): Promise<boolean> {
 
     return moderation.results[0]?.flagged ?? false;
   } catch (error) {
-    console.error("Moderation check failed:", error);
+    logger.error({ err: error }, "Moderation check failed");
     // If moderation fails, allow the content (fail open for better UX)
     return false;
   }
@@ -195,7 +196,7 @@ export async function generateCoachingMessage(
   // Check if OpenAI is configured
   const client = getOpenAIClient();
   if (!client) {
-    console.log("OpenAI API key not configured, using fallback message");
+    logger.info("OpenAI API key not configured, using fallback message");
     const fallbackMessage = getRandomFallbackMessage(context.adjustmentType);
 
     logAudit({
@@ -235,7 +236,7 @@ export async function generateCoachingMessage(
     const isFlagged = await checkModeration(aiMessage);
 
     if (isFlagged) {
-      console.warn("AI response flagged by moderation, using fallback");
+      logger.warn("AI response flagged by moderation, using fallback");
       const fallbackMessage = getRandomFallbackMessage(context.adjustmentType);
 
       logAudit({
@@ -275,7 +276,7 @@ export async function generateCoachingMessage(
       completionTokens: completion.usage?.completion_tokens,
     };
   } catch (error) {
-    console.error("OpenAI API error:", error);
+    logger.error({ err: error }, "OpenAI API error");
     const fallbackMessage = getRandomFallbackMessage(context.adjustmentType);
 
     logAudit({
@@ -304,7 +305,7 @@ function logAudit(entry: AuditLogEntry): void {
   }
 
   // Log to console for debugging/monitoring
-  console.log(`[Coaching Audit] User: ${entry.userId}, Source: ${entry.source}, Model: ${entry.model || "N/A"}`);
+  logger.info({ userId: entry.userId, source: entry.source, model: entry.model }, "Coaching audit entry");
 }
 
 // Get audit log entries (for admin/debugging)

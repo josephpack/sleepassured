@@ -9,6 +9,7 @@ import {
   buildUserContextFromDb,
   generateCoachingMessage,
 } from "../services/coaching.js";
+import logger from "../lib/logger.js";
 
 interface AdjustmentJobResult {
   userId: string;
@@ -105,13 +106,11 @@ async function processUserAdjustment(userId: string): Promise<AdjustmentJobResul
           });
         }
 
-        console.log(
-          `[Weekly Adjustment] User ${userId}: AI coaching message generated (source: ${coachingResult.source})`
-        );
+        logger.info({ userId, source: coachingResult.source }, "AI coaching message generated");
       }
     } catch (coachingError) {
       // Log but don't fail the adjustment if AI message generation fails
-      console.error(`[Weekly Adjustment] User ${userId}: AI coaching failed, using fallback`, coachingError);
+      logger.error({ err: coachingError, userId }, "AI coaching failed, using fallback");
     }
 
     return {
@@ -122,7 +121,7 @@ async function processUserAdjustment(userId: string): Promise<AdjustmentJobResul
       avgSleepEfficiency: adjustment.avgSleepEfficiency,
     };
   } catch (error) {
-    console.error(`Adjustment failed for user ${userId}:`, error);
+    logger.error({ err: error, userId }, "Adjustment failed for user");
     return {
       userId,
       success: false,
@@ -139,7 +138,7 @@ export async function runWeeklyAdjustmentJob(): Promise<{
   skipped: number;
   results: AdjustmentJobResult[];
 }> {
-  console.log("[Weekly Adjustment] Starting Sunday adjustment job...");
+  logger.info("Starting Sunday adjustment job");
 
   // Get all users with baseline complete
   const qualifyingUsers = await prisma.user.findMany({
@@ -150,7 +149,7 @@ export async function runWeeklyAdjustmentJob(): Promise<{
     select: { id: true },
   });
 
-  console.log(`[Weekly Adjustment] Found ${qualifyingUsers.length} qualifying users`);
+  logger.info({ count: qualifyingUsers.length }, "Found qualifying users for weekly adjustment");
 
   const results: AdjustmentJobResult[] = [];
   let skipped = 0;
@@ -170,9 +169,7 @@ export async function runWeeklyAdjustmentJob(): Promise<{
     });
 
     if (existingAdjustment) {
-      console.log(
-        `[Weekly Adjustment] User ${user.id}: Skipped - already processed this week`
-      );
+      logger.info({ userId: user.id }, "Skipped - already processed this week");
       skipped++;
       continue;
     }
@@ -181,11 +178,9 @@ export async function runWeeklyAdjustmentJob(): Promise<{
     results.push(result);
 
     if (result.success) {
-      console.log(
-        `[Weekly Adjustment] User ${user.id}: ${result.action} (SE: ${result.avgSleepEfficiency?.toFixed(1)}%, TIB: ${result.newTIB} mins)`
-      );
+      logger.info({ userId: user.id, action: result.action, se: result.avgSleepEfficiency, tib: result.newTIB }, "Weekly adjustment applied");
     } else {
-      console.error(`[Weekly Adjustment] User ${user.id}: Failed - ${result.error}`);
+      logger.error({ userId: user.id, error: result.error }, "Weekly adjustment failed");
     }
 
     // Small delay between users
@@ -195,9 +190,7 @@ export async function runWeeklyAdjustmentJob(): Promise<{
   const successful = results.filter((r) => r.success).length;
   const failed = results.filter((r) => !r.success).length;
 
-  console.log(
-    `[Weekly Adjustment] Completed: ${successful} successful, ${failed} failed, ${skipped} skipped`
-  );
+  logger.info({ successful, failed, skipped }, "Weekly adjustment job completed");
 
   return {
     totalUsers: qualifyingUsers.length,
@@ -231,9 +224,7 @@ export function startWeeklyAdjustmentScheduler(): void {
 
   const msUntilNextSunday = nextSunday.getTime() - now.getTime();
 
-  console.log(
-    `[Weekly Adjustment] Scheduler started. First run at ${nextSunday.toISOString()}`
-  );
+  logger.info({ firstRun: nextSunday.toISOString() }, "Weekly adjustment scheduler started");
 
   // Run at the first Sunday midnight
   adjustmentTimeout = setTimeout(async () => {
@@ -258,11 +249,11 @@ export function stopWeeklyAdjustmentScheduler(): void {
     clearInterval(adjustmentInterval);
     adjustmentInterval = null;
   }
-  console.log("[Weekly Adjustment] Scheduler stopped");
+  logger.info("Weekly adjustment scheduler stopped");
 }
 
 // Manual trigger for testing or admin purposes
 export async function triggerAdjustmentForUser(userId: string): Promise<AdjustmentJobResult> {
-  console.log(`[Weekly Adjustment] Manual trigger for user ${userId}`);
+  logger.info({ userId }, "Manual adjustment trigger");
   return processUserAdjustment(userId);
 }

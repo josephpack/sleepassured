@@ -1,5 +1,6 @@
 import OpenAI from "openai";
 import { prisma } from "@sleepassured/db";
+import logger from "../lib/logger.js";
 
 // Lazy-initialize OpenAI client
 let openai: OpenAI | null = null;
@@ -343,7 +344,7 @@ export async function sendChatMessage(
 
   // If no OpenAI client, return fallback
   if (!client) {
-    console.log("OpenAI API key not configured, using fallback message");
+    logger.info("OpenAI API key not configured, using fallback message");
     return {
       message: FALLBACK_RESPONSES.default,
       source: "fallback",
@@ -392,7 +393,7 @@ export async function sendChatMessage(
       source: "ai",
     };
   } catch (error) {
-    console.error("OpenAI chat error:", error);
+    logger.error({ err: error }, "OpenAI chat error");
     return {
       message: FALLBACK_RESPONSES.default,
       source: "fallback",
