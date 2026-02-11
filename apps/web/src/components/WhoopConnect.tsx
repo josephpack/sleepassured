@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -19,6 +19,7 @@ import {
 import { Loader2, Link2, Link2Off, RefreshCw, CheckCircle2 } from "lucide-react";
 
 export function WhoopConnect() {
+  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const [status, setStatus] = useState<WhoopStatus | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -72,7 +73,7 @@ export function WhoopConnect() {
   const handleConnect = async () => {
     setIsConnecting(true);
     try {
-      const { authUrl } = await getWhoopAuthUrl();
+      const { authUrl } = await getWhoopAuthUrl(location.pathname);
       // Redirect to WHOOP OAuth
       window.location.href = authUrl;
     } catch (error) {

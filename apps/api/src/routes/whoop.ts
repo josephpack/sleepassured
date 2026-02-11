@@ -22,7 +22,7 @@ const router = Router();
 // Store OAuth states temporarily (in production, use Redis or similar)
 const pendingOAuthStates = new Map<
   string,
-  { userId: string; expiresAt: Date }
+  { userId: string; expiresAt: Date; returnTo: string }
 >();
 
 // Clean up expired states periodically
@@ -54,10 +54,16 @@ router.get("/auth-url", authenticate, async (req: Request, res: Response) => {
     // Generate a secure random state
     const state = crypto.randomBytes(32).toString("hex");
 
+    // Only allow relative paths to prevent open redirect
+    const rawReturnTo = req.query.returnTo as string | undefined;
+    const returnTo =
+      rawReturnTo && rawReturnTo.startsWith("/") ? rawReturnTo : "/settings";
+
     // Store state with user ID (expires in 10 minutes)
     pendingOAuthStates.set(state, {
       userId,
       expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+      returnTo,
     });
 
     const authUrl = getAuthorizationUrl(state);
@@ -102,6 +108,7 @@ router.get("/callback", async (req: Request, res: Response) => {
     }
 
     const userId = stateData.userId;
+    const returnTo = stateData.returnTo;
     pendingOAuthStates.delete(state);
 
     // Exchange code for tokens
@@ -117,7 +124,7 @@ router.get("/callback", async (req: Request, res: Response) => {
 
     if (existingWhoopUser && existingWhoopUser.userId !== userId) {
       res.redirect(
-        `${frontendUrl}/settings?whoop_error=account_already_linked`
+        `${frontendUrl}${returnTo}?whoop_error=account_already_linked`
       );
       return;
     }
@@ -140,7 +147,7 @@ router.get("/callback", async (req: Request, res: Response) => {
       },
     });
 
-    res.redirect(`${frontendUrl}/settings?whoop_connected=true`);
+    res.redirect(`${frontendUrl}${returnTo}?whoop_connected=true`);
   } catch (error) {
     logger.error({ err: error }, "WHOOP callback error");
     const frontendUrl =

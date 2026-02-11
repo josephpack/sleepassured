@@ -27,6 +27,7 @@ interface AuthContextType {
   login: (data: LoginRequest) => Promise<void>;
   signup: (data: SignupRequest) => Promise<void>;
   logout: () => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -115,6 +116,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [handleAuthResponse]
   );
 
+  const refreshUser = useCallback(async () => {
+    const { user: currentUser } = await getCurrentUser();
+    setUser(currentUser);
+  }, []);
+
   const logout = useCallback(async () => {
     try {
       await apiLogout();
@@ -134,6 +140,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         login,
         signup,
         logout,
+        refreshUser,
       }}
     >
       {children}

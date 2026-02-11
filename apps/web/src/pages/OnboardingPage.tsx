@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,60 +20,108 @@ import {
 import { WhoopConnect } from "@/components/WhoopConnect";
 import { ChevronLeft, ChevronRight, Check, Loader2 } from "lucide-react";
 
-// ISI Questions
+// ISI Questions — each with context-appropriate labels (0–4 scoring preserved)
 const ISI_QUESTIONS = [
   {
     id: 1,
     question: "Difficulty falling asleep",
     description: "How difficult has it been to fall asleep?",
+    options: [
+      { value: 0, label: "Not at all" },
+      { value: 1, label: "Mildly" },
+      { value: 2, label: "Moderately" },
+      { value: 3, label: "Very" },
+      { value: 4, label: "Extremely" },
+    ],
   },
   {
     id: 2,
     question: "Difficulty staying asleep",
     description: "How often do you wake up during the night?",
+    options: [
+      { value: 0, label: "Never" },
+      { value: 1, label: "Rarely" },
+      { value: 2, label: "Sometimes" },
+      { value: 3, label: "Often" },
+      { value: 4, label: "Always" },
+    ],
   },
   {
     id: 3,
     question: "Problems waking up too early",
     description: "Do you wake up earlier than you would like?",
+    options: [
+      { value: 0, label: "Never" },
+      { value: 1, label: "Rarely" },
+      { value: 2, label: "Sometimes" },
+      { value: 3, label: "Often" },
+      { value: 4, label: "Always" },
+    ],
   },
   {
     id: 4,
     question: "Sleep pattern satisfaction",
     description: "How satisfied are you with your current sleep pattern?",
+    options: [
+      { value: 0, label: "Very satisfied" },
+      { value: 1, label: "Satisfied" },
+      { value: 2, label: "Neutral" },
+      { value: 3, label: "Dissatisfied" },
+      { value: 4, label: "Very dissatisfied" },
+    ],
   },
   {
     id: 5,
     question: "Daytime functioning",
     description: "How noticeable are your sleep problems to others?",
+    options: [
+      { value: 0, label: "Not at all" },
+      { value: 1, label: "Barely" },
+      { value: 2, label: "Somewhat" },
+      { value: 3, label: "Very" },
+      { value: 4, label: "Extremely" },
+    ],
   },
   {
     id: 6,
     question: "Quality of life impact",
     description: "How worried are you about your current sleep problems?",
+    options: [
+      { value: 0, label: "Not at all" },
+      { value: 1, label: "A little" },
+      { value: 2, label: "Somewhat" },
+      { value: 3, label: "Very" },
+      { value: 4, label: "Extremely" },
+    ],
   },
   {
     id: 7,
     question: "Daily interference",
     description:
       "How much do your sleep problems interfere with your daily functioning?",
+    options: [
+      { value: 0, label: "Not at all" },
+      { value: 1, label: "A little" },
+      { value: 2, label: "Somewhat" },
+      { value: 3, label: "Much" },
+      { value: 4, label: "Very much" },
+    ],
   },
-];
-
-const ISI_OPTIONS = [
-  { value: 0, label: "None" },
-  { value: 1, label: "Mild" },
-  { value: 2, label: "Moderate" },
-  { value: 3, label: "Severe" },
-  { value: 4, label: "Very Severe" },
 ];
 
 type OnboardingStep = "welcome" | "isi" | "whoop" | "waketime" | "complete";
 
 export function OnboardingPage() {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const [currentStep, setCurrentStep] = useState<OnboardingStep>("welcome");
+  const { user, refreshUser } = useAuth();
+  const [searchParams] = useSearchParams();
+
+  // If returning from WHOOP OAuth, resume on the whoop step
+  const initialStep: OnboardingStep =
+    searchParams.has("whoop_connected") || searchParams.has("whoop_error")
+      ? "whoop"
+      : "welcome";
+  const [currentStep, setCurrentStep] = useState<OnboardingStep>(initialStep);
   const [isiResponses, setIsiResponses] = useState<number[]>(
     new Array(7).fill(-1)
   );
@@ -112,6 +160,7 @@ export function OnboardingPage() {
         targetWakeTime,
         onboardingCompleted: true,
       });
+      await refreshUser();
       toast.success("Onboarding complete! Welcome to SleepAssured.");
       navigate("/");
     } catch (error) {
@@ -276,7 +325,7 @@ export function OnboardingPage() {
                     </p>
                   </div>
                   <div className="flex gap-2 flex-wrap">
-                    {ISI_OPTIONS.map((option) => (
+                    {q.options.map((option) => (
                       <Button
                         key={option.value}
                         variant={

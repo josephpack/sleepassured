@@ -19,8 +19,9 @@ export async function getWhoopStatus(): Promise<WhoopStatus> {
   return api<WhoopStatus>("/whoop/status");
 }
 
-export async function getWhoopAuthUrl(): Promise<WhoopAuthUrl> {
-  return api<WhoopAuthUrl>("/whoop/auth-url");
+export async function getWhoopAuthUrl(returnTo?: string): Promise<WhoopAuthUrl> {
+  const params = returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : "";
+  return api<WhoopAuthUrl>(`/whoop/auth-url${params}`);
 }
 
 export async function disconnectWhoop(): Promise<{ message: string }> {
