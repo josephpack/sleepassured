@@ -32,7 +32,7 @@ export function DiaryPage() {
   };
 
   return (
-    <div className="min-h-screen bg-muted/30 py-6 sm:py-8">
+    <div className="pb-6">
       <div className="container max-w-2xl mx-auto px-4">
         {/* Header */}
         <div className="flex items-center justify-between mb-6 gap-2">

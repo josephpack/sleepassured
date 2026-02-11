@@ -1,11 +1,11 @@
 import { Outlet } from "react-router-dom";
-import { BottomNav } from "./BottomNav";
+import { TabBar } from "./BottomNav";
 
 export function MainLayout() {
   return (
-    <div className="pb-20">
+    <div className="min-h-screen bg-muted/30">
+      <TabBar />
       <Outlet />
-      <BottomNav />
     </div>
   );
 }

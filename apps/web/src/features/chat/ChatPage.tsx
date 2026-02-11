@@ -96,16 +96,7 @@ export function ChatPage() {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-5rem)] bg-background">
-      {/* Header */}
-      <header className="flex items-center gap-3 px-4 py-3 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="flex-1 min-w-0">
-          <h1 className="font-semibold truncate">Sleep Coach</h1>
-          <p className="text-xs text-muted-foreground">
-            Ask about your sleep
-          </p>
-        </div>
-      </header>
+    <div className="flex flex-col h-[calc(100vh-3rem)] bg-background">
 
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto">
