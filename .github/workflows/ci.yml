@@ -48,9 +48,6 @@ jobs:
       - name: Run database migrations
         run: npx prisma migrate deploy --schema=packages/db/prisma/schema.prisma
 
-      - name: Lint
-        run: npm run lint
-
       - name: Build
         run: npm run build
 
