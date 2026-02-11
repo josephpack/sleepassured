@@ -9,6 +9,7 @@ import { ChatPage } from "@/features/chat";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { PublicRoute } from "@/components/PublicRoute";
 import { AppLayout } from "@/components/AppLayout";
+import { MainLayout } from "@/components/MainLayout";
 
 export const router = createBrowserRouter([
   {
@@ -34,8 +35,22 @@ export const router = createBrowserRouter([
         element: <ProtectedRoute />,
         children: [
           {
-            path: "/",
-            element: <DashboardPage />,
+            // Tabbed pages with bottom navigation
+            element: <MainLayout />,
+            children: [
+              {
+                path: "/",
+                element: <DashboardPage />,
+              },
+              {
+                path: "/diary",
+                element: <DiaryPage />,
+              },
+              {
+                path: "/chat",
+                element: <ChatPage />,
+              },
+            ],
           },
           {
             path: "/settings",
@@ -44,14 +59,6 @@ export const router = createBrowserRouter([
           {
             path: "/onboarding",
             element: <OnboardingPage />,
-          },
-          {
-            path: "/diary",
-            element: <DiaryPage />,
-          },
-          {
-            path: "/chat",
-            element: <ChatPage />,
           },
         ],
       },

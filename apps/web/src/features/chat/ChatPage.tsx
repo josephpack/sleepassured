@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Send, Loader2 } from "lucide-react";
+import { Send, Loader2 } from "lucide-react";
 import {
   sendChatMessage,
   getQuickReplies,
@@ -10,7 +9,6 @@ import {
 } from "./api";
 
 export function ChatPage() {
-  const navigate = useNavigate();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -98,17 +96,9 @@ export function ChatPage() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-background">
+    <div className="flex flex-col h-[calc(100vh-5rem)] bg-background">
       {/* Header */}
       <header className="flex items-center gap-3 px-4 py-3 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => navigate("/")}
-          className="shrink-0"
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
         <div className="flex-1 min-w-0">
           <h1 className="font-semibold truncate">Sleep Coach</h1>
           <p className="text-xs text-muted-foreground">
@@ -192,7 +182,7 @@ export function ChatPage() {
       </div>
 
       {/* Input Area */}
-      <div className="border-t bg-background p-4 pb-safe">
+      <div className="border-t bg-background p-4 pb-2">
         <div className="max-w-2xl mx-auto">
           <div className="flex items-end gap-2 bg-muted rounded-2xl px-4 py-2">
             <textarea

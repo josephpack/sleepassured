@@ -1,7 +1,6 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { DiaryEntryForm } from "./DiaryEntryForm";
 import { DiaryList } from "./DiaryList";
 import { DiaryEntry } from "./api";
@@ -37,15 +36,7 @@ export function DiaryPage() {
       <div className="container max-w-2xl mx-auto px-4">
         {/* Header */}
         <div className="flex items-center justify-between mb-6 gap-2">
-          <div className="flex items-center gap-2 sm:gap-4 min-w-0">
-            <Link to="/">
-              <Button variant="ghost" size="sm" className="min-h-[44px] min-w-[44px] px-2 sm:px-3">
-                <ChevronLeft className="h-4 w-4 sm:mr-1" />
-                <span className="hidden sm:inline">Dashboard</span>
-              </Button>
-            </Link>
-            <h1 className="text-xl sm:text-2xl font-bold truncate">Sleep Diary</h1>
-          </div>
+          <h1 className="text-xl sm:text-2xl font-bold truncate">Sleep Diary</h1>
           {!showForm && (
             <Button onClick={handleNewEntry} className="min-h-[44px] shrink-0">
               <Plus className="h-4 w-4 sm:mr-2" />

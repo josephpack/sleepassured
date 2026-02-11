@@ -14,13 +14,10 @@ import {
   Moon,
   Sun,
   TrendingUp,
-  Lightbulb,
   Plus,
   ChevronRight,
   Loader2,
   Clock,
-  MessageCircle,
-  AlertCircle,
   Target,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -29,7 +26,6 @@ import {
   initializeSchedule,
   CurrentScheduleResponse,
 } from "@/features/diary/api";
-import { getDailyTip, SleepTip } from "@/data/sleepTips";
 import { EfficiencyChart } from "@/components/dashboard/EfficiencyChart";
 import { RecoveryCard } from "@/components/dashboard/RecoveryCard";
 
@@ -64,11 +60,10 @@ function getAdjustmentDescription(
 }
 
 export function DashboardPage() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const [scheduleData, setScheduleData] = useState<CurrentScheduleResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isInitializing, setIsInitializing] = useState(false);
-  const [dailyTip, setDailyTip] = useState<SleepTip | null>(null);
 
   useEffect(() => {
     async function loadData() {
@@ -87,9 +82,6 @@ export function DashboardPage() {
     } else {
       setIsLoading(false);
     }
-
-    // Get daily tip
-    setDailyTip(getDailyTip());
   }, [user?.onboardingCompleted]);
 
   const handleInitializeSchedule = async () => {
@@ -113,14 +105,8 @@ export function DashboardPage() {
   const schedule = scheduleData?.schedule;
   const baselineStatus = scheduleData?.baselineStatus;
 
-  // Check if user has low sleep efficiency (below 80%)
-  const hasLowEfficiency =
-    schedule?.avgSleepEfficiency !== null &&
-    schedule?.avgSleepEfficiency !== undefined &&
-    schedule.avgSleepEfficiency < 80;
-
   return (
-    <div className="min-h-screen bg-muted/30 p-4 pb-safe">
+    <div className="min-h-screen bg-muted/30 p-4">
       <div className="mx-auto max-w-4xl">
         {/* Header */}
         <div className="flex items-center justify-between mb-6 sm:mb-8 gap-2">
@@ -132,29 +118,29 @@ export function DashboardPage() {
               </span>
             )}
           </div>
-          <div className="flex gap-2 shrink-0">
+          <div className="flex items-center gap-2 shrink-0">
+            {user?.name && (
+              <span className="text-sm text-muted-foreground hidden sm:inline">
+                Hi, {user.name.split(" ")[0]}
+              </span>
+            )}
             <Button variant="outline" size="icon" asChild className="h-10 w-10">
               <Link to="/settings">
                 <Settings className="h-4 w-4" />
               </Link>
             </Button>
-            <Button variant="outline" onClick={logout} className="min-h-[44px]">
-              Sign Out
-            </Button>
           </div>
         </div>
 
-        {/* Welcome Card */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>Welcome back, {user?.name?.split(" ")[0]}!</CardTitle>
-            <CardDescription>
-              {user?.onboardingCompleted
-                ? "Track your sleep and build better habits"
-                : "Complete onboarding to start your sleep improvement journey"}
-            </CardDescription>
-          </CardHeader>
-          {!user?.onboardingCompleted && (
+        {/* Onboarding CTA for users who haven't completed onboarding */}
+        {!user?.onboardingCompleted && (
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle>Welcome, {user?.name?.split(" ")[0]}!</CardTitle>
+              <CardDescription>
+                Complete onboarding to start your sleep improvement journey
+              </CardDescription>
+            </CardHeader>
             <CardContent>
               <Button asChild>
                 <Link to="/onboarding">
@@ -163,60 +149,37 @@ export function DashboardPage() {
                 </Link>
               </Button>
             </CardContent>
-          )}
-        </Card>
+          </Card>
+        )}
 
         {user?.onboardingCompleted && (
           <>
-            {/* Chat with Coach CTA - Above the fold */}
-            <Card className="mb-6 bg-gradient-to-r from-primary/10 via-primary/5 to-background border-primary/20">
-              <Link to="/chat" className="block">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
-                        <MessageCircle className="h-5 w-5 text-primary" />
-                      </div>
-                      <div>
-                        <CardTitle className="text-lg">Chat with your Sleep Coach</CardTitle>
-                        <CardDescription>
-                          Get personalised advice based on your sleep data
-                        </CardDescription>
-                      </div>
-                    </div>
-                    <ChevronRight className="h-5 w-5 text-muted-foreground" />
-                  </div>
-                </CardHeader>
-              </Link>
-            </Card>
-
-            {/* Low Efficiency Nudge */}
-            {!isLoading && hasLowEfficiency && (
-              <Card className="mb-6 border-amber-500/30 bg-amber-50/50 dark:bg-amber-950/20">
-                <Link to="/chat" className="block">
-                  <CardContent className="flex items-center gap-4 py-4">
-                    <div className="h-10 w-10 rounded-full bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center shrink-0">
-                      <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-amber-900 dark:text-amber-100">
-                        Your sleep efficiency was {schedule?.avgSleepEfficiency?.toFixed(0)}%
-                      </p>
-                      <p className="text-sm text-amber-700 dark:text-amber-300">
-                        Tap to chat with your coach for tips to improve
-                      </p>
-                    </div>
-                    <ChevronRight className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0" />
-                  </CardContent>
-                </Link>
-              </Card>
-            )}
-
             {/* Loading State */}
             {isLoading && (
               <Card className="mb-6">
                 <CardContent className="flex items-center justify-center py-12">
                   <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                </CardContent>
+              </Card>
+            )}
+
+            {/* First-time user CTA (no schedule, no baseline) */}
+            {!isLoading && !scheduleData?.hasSchedule && !baselineStatus && (
+              <Card className="mb-6">
+                <CardContent className="flex flex-col items-center text-center py-10 px-6">
+                  <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                    <Plus className="h-7 w-7 text-primary" />
+                  </div>
+                  <h2 className="text-lg font-semibold mb-2">Log your first night's sleep</h2>
+                  <p className="text-sm text-muted-foreground mb-6 max-w-sm">
+                    Start by recording a few nights in your diary. We'll use this to build your personalised sleep schedule.
+                  </p>
+                  <Button asChild size="lg">
+                    <Link to="/diary">
+                      Open Sleep Diary
+                      <ChevronRight className="h-4 w-4 ml-2" />
+                    </Link>
+                  </Button>
                 </CardContent>
               </Card>
             )}
@@ -365,53 +328,6 @@ export function DashboardPage() {
               <div className="mb-6">
                 <RecoveryCard />
               </div>
-            )}
-
-            {/* Quick Actions */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-              <Card className="hover:bg-muted/50 transition-colors">
-                <Link to="/diary" className="block min-h-[44px]">
-                  <CardHeader>
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <Plus className="h-5 w-5 text-primary" />
-                      Log Sleep
-                    </CardTitle>
-                    <CardDescription>
-                      Record last night's sleep in your diary
-                    </CardDescription>
-                  </CardHeader>
-                </Link>
-              </Card>
-
-              <Card className="hover:bg-muted/50 transition-colors">
-                <Link to="/diary" className="block min-h-[44px]">
-                  <CardHeader>
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <Moon className="h-5 w-5 text-primary" />
-                      View Diary
-                    </CardTitle>
-                    <CardDescription>
-                      See your recent sleep entries and trends
-                    </CardDescription>
-                  </CardHeader>
-                </Link>
-              </Card>
-            </div>
-
-            {/* Daily Tip */}
-            {dailyTip && (
-              <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
-                <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <Lightbulb className="h-5 w-5 text-primary" />
-                    Today's Sleep Tip
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <h4 className="font-medium mb-2">{dailyTip.title}</h4>
-                  <p className="text-sm text-muted-foreground">{dailyTip.content}</p>
-                </CardContent>
-              </Card>
             )}
           </>
         )}
