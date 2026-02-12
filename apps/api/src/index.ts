@@ -25,6 +25,11 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Trust Railway's reverse proxy (needed for secure cookies behind TLS termination)
+if (process.env.NODE_ENV === "production") {
+  app.set("trust proxy", 1);
+}
+
 // Middleware
 app.use(helmet());
 app.use(
