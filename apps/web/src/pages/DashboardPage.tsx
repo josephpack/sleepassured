@@ -14,11 +14,15 @@ import {
   Moon,
   Sun,
   TrendingUp,
-  Plus,
   ChevronRight,
   Loader2,
   Clock,
   Target,
+  Sparkles,
+  Lock,
+  BarChart3,
+  CalendarClock,
+  BookOpen,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -104,9 +108,12 @@ export function DashboardPage() {
 
   const schedule = scheduleData?.schedule;
   const baselineStatus = scheduleData?.baselineStatus;
+  const hasSchedule = scheduleData?.hasSchedule;
+  const isBaseline = !isLoading && !hasSchedule && !!baselineStatus;
+  const isFirstTime = !isLoading && !hasSchedule && !baselineStatus;
 
   return (
-    <div className="px-4 pb-4">
+    <div className="px-4 pb-8 pt-2">
       <div className="mx-auto max-w-4xl">
         {/* Header */}
         <div className="flex items-center justify-between mb-6 sm:mb-8 gap-2">
@@ -163,171 +170,295 @@ export function DashboardPage() {
               </Card>
             )}
 
-            {/* First-time user CTA (no schedule, no baseline) */}
-            {!isLoading && !scheduleData?.hasSchedule && !baselineStatus && (
-              <Card className="mb-6">
-                <CardContent className="flex flex-col items-center text-center py-10 px-6">
-                  <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                    <Plus className="h-7 w-7 text-primary" />
-                  </div>
-                  <h2 className="text-lg font-semibold mb-2">Log your first night's sleep</h2>
-                  <p className="text-sm text-muted-foreground mb-6 max-w-sm">
-                    Start by recording a few nights in your diary. We'll use this to build your personalised sleep schedule.
-                  </p>
-                  <Button asChild size="lg">
-                    <Link to="/diary">
-                      Open Sleep Diary
-                      <ChevronRight className="h-4 w-4 ml-2" />
-                    </Link>
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Sleep Window Display (if baseline complete) */}
-            {!isLoading && scheduleData?.hasSchedule && schedule && (
-              <Card className="mb-6 border-primary/20">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Clock className="h-5 w-5 text-primary" />
-                    Your Sleep Window
-                  </CardTitle>
-                  <CardDescription>
-                    Follow this schedule for better sleep
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 gap-3 sm:gap-6 mb-4">
-                    <div className="text-center p-3 sm:p-4 bg-muted/50 rounded-lg">
-                      <div className="flex items-center justify-center gap-2 text-muted-foreground mb-2">
-                        <Moon className="h-4 w-4" />
-                        <span className="text-sm">Bedtime</span>
+            {!isLoading && (
+              <>
+                {/* Hero Card — show during baseline / first-time */}
+                {!hasSchedule && (
+                  <Card className="mb-6 border-primary/20 bg-gradient-to-br from-primary/5 to-background">
+                    <CardContent className="pt-6 pb-6">
+                      <div className="flex items-start gap-3 mb-3">
+                        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                          <Sparkles className="h-5 w-5 text-primary" />
+                        </div>
+                        <div>
+                          <h2 className="text-lg font-semibold mb-1">
+                            Your AI Sleep Coach, Powered by Real Data
+                          </h2>
+                          <p className="text-sm text-muted-foreground leading-relaxed">
+                            SleepAssured combines your WHOOP sleep data with AI trained on CBT-i
+                            principles to create a personalised programme to help you overcome
+                            insomnia.
+                          </p>
+                        </div>
                       </div>
-                      <span className="text-xl sm:text-2xl font-bold">
-                        {formatTimeDisplay(schedule.prescribedBedtime)}
-                      </span>
-                    </div>
-                    <div className="text-center p-3 sm:p-4 bg-muted/50 rounded-lg">
-                      <div className="flex items-center justify-center gap-2 text-muted-foreground mb-2">
-                        <Sun className="h-4 w-4" />
-                        <span className="text-sm">Wake Time</span>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* First-time user — log first night */}
+                {isFirstTime && (
+                  <Card className="mb-6">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <BookOpen className="h-5 w-5 text-primary" />
+                        Get Started
+                      </CardTitle>
+                      <CardDescription>
+                        We need 7 nights of sleep data to understand your patterns and
+                        build your personalised schedule.
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <Button asChild size="lg">
+                        <Link to="/diary">
+                          Log Tonight's Sleep
+                          <ChevronRight className="h-4 w-4 ml-2" />
+                        </Link>
+                      </Button>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Baseline Progress */}
+                {isBaseline && (
+                  <Card className="mb-6">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <TrendingUp className="h-5 w-5 text-primary" />
+                        Building Your Baseline
+                      </CardTitle>
+                      <CardDescription>
+                        We need 7 nights of sleep data to understand your patterns and
+                        build your personalised schedule.
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      {/* Progress bar */}
+                      <div className="mb-4">
+                        <div className="flex justify-between text-sm mb-2">
+                          <span className="text-muted-foreground">Progress</span>
+                          <span className="font-medium">
+                            {baselineStatus.entriesLogged} of 7 nights logged
+                          </span>
+                        </div>
+                        <div className="h-3 bg-muted rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-primary transition-all duration-300"
+                            style={{
+                              width: `${Math.min(100, (baselineStatus.entriesLogged / 7) * 100)}%`,
+                            }}
+                          />
+                        </div>
                       </div>
-                      <span className="text-xl sm:text-2xl font-bold">
-                        {formatTimeDisplay(schedule.prescribedWakeTime)}
-                      </span>
-                    </div>
-                  </div>
 
-                  <div className="text-center text-sm text-muted-foreground mb-4">
-                    Time in bed: {formatDuration(schedule.timeInBedMins)}
-                  </div>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        {baselineStatus.message}
+                      </p>
 
-                  {/* Adjustment info */}
-                  {schedule.adjustmentMade && schedule.adjustmentMade !== "BASELINE" && (
-                    <div className="flex items-center justify-center gap-2 text-sm">
-                      <TrendingUp className="h-4 w-4 text-primary" />
-                      <span>
-                        {getAdjustmentDescription(schedule.adjustmentMade, schedule.adjustmentMins)}
-                      </span>
-                    </div>
-                  )}
+                      {/* Initialize button when baseline is complete */}
+                      {baselineStatus.isComplete ? (
+                        <Button onClick={handleInitializeSchedule} disabled={isInitializing}>
+                          {isInitializing && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                          Get My Sleep Schedule
+                        </Button>
+                      ) : (
+                        <Button asChild>
+                          <Link to="/diary">
+                            Log Tonight's Sleep
+                            <ChevronRight className="h-4 w-4 ml-2" />
+                          </Link>
+                        </Button>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
 
-                  {/* Feedback message */}
-                  {schedule.feedbackMessage && (
-                    <div className="mt-4 p-4 bg-primary/5 rounded-lg border border-primary/10">
-                      <p className="text-sm">{schedule.feedbackMessage}</p>
-                    </div>
-                  )}
+                {/* Sleep Window Display (post-baseline) */}
+                {hasSchedule && schedule && (
+                  <Card className="mb-6 border-primary/20">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Clock className="h-5 w-5 text-primary" />
+                        Your Sleep Window
+                      </CardTitle>
+                      <CardDescription>
+                        Follow this schedule for better sleep
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-2 gap-3 sm:gap-6 mb-4">
+                        <div className="text-center p-3 sm:p-4 bg-muted/50 rounded-lg">
+                          <div className="flex items-center justify-center gap-2 text-muted-foreground mb-2">
+                            <Moon className="h-4 w-4" />
+                            <span className="text-sm">Bedtime</span>
+                          </div>
+                          <span className="text-xl sm:text-2xl font-bold">
+                            {formatTimeDisplay(schedule.prescribedBedtime)}
+                          </span>
+                        </div>
+                        <div className="text-center p-3 sm:p-4 bg-muted/50 rounded-lg">
+                          <div className="flex items-center justify-center gap-2 text-muted-foreground mb-2">
+                            <Sun className="h-4 w-4" />
+                            <span className="text-sm">Wake Time</span>
+                          </div>
+                          <span className="text-xl sm:text-2xl font-bold">
+                            {formatTimeDisplay(schedule.prescribedWakeTime)}
+                          </span>
+                        </div>
+                      </div>
 
-                  {/* Weekly efficiency and adherence */}
-                  {(schedule.avgSleepEfficiency !== null || schedule.adherencePercentage !== null) && (
-                    <div className="mt-4 flex flex-wrap justify-center gap-4 sm:gap-6 text-sm text-muted-foreground">
-                      {schedule.avgSleepEfficiency !== null && (
-                        <div className="flex items-center gap-1">
-                          <TrendingUp className="h-4 w-4" />
+                      <div className="text-center text-sm text-muted-foreground mb-4">
+                        Time in bed: {formatDuration(schedule.timeInBedMins)}
+                      </div>
+
+                      {/* Adjustment info */}
+                      {schedule.adjustmentMade && schedule.adjustmentMade !== "BASELINE" && (
+                        <div className="flex items-center justify-center gap-2 text-sm">
+                          <TrendingUp className="h-4 w-4 text-primary" />
                           <span>
-                            Efficiency:{" "}
-                            <span className="font-medium">
-                              {schedule.avgSleepEfficiency.toFixed(0)}%
-                            </span>
+                            {getAdjustmentDescription(schedule.adjustmentMade, schedule.adjustmentMins)}
                           </span>
                         </div>
                       )}
-                      {schedule.adherencePercentage !== null && (
-                        <div className="flex items-center gap-1">
-                          <Target className="h-4 w-4" />
-                          <span>
-                            Adherence:{" "}
-                            <span className="font-medium">
-                              {schedule.adherencePercentage}%
-                            </span>
-                          </span>
+
+                      {/* Feedback message */}
+                      {schedule.feedbackMessage && (
+                        <div className="mt-4 p-4 bg-primary/5 rounded-lg border border-primary/10">
+                          <p className="text-sm">{schedule.feedbackMessage}</p>
                         </div>
                       )}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            )}
 
-            {/* Baseline Progress (if in baseline week) */}
-            {!isLoading && !scheduleData?.hasSchedule && baselineStatus && (
-              <Card className="mb-6">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <TrendingUp className="h-5 w-5 text-primary" />
-                    Building Your Baseline
-                  </CardTitle>
-                  <CardDescription>
-                    We need a week of data to create your personalised schedule
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {/* Progress bar */}
-                  <div className="mb-4">
-                    <div className="flex justify-between text-sm mb-2">
-                      <span className="text-muted-foreground">Progress</span>
-                      <span className="font-medium">
-                        {baselineStatus.entriesLogged} of 5 nights logged
-                      </span>
-                    </div>
-                    <div className="h-3 bg-muted rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-primary transition-all duration-300"
-                        style={{
-                          width: `${Math.min(100, (baselineStatus.entriesLogged / 5) * 100)}%`,
-                        }}
-                      />
-                    </div>
-                  </div>
+                      {/* Weekly efficiency and adherence */}
+                      {(schedule.avgSleepEfficiency !== null || schedule.adherencePercentage !== null) && (
+                        <div className="mt-4 flex flex-wrap justify-center gap-4 sm:gap-6 text-sm text-muted-foreground">
+                          {schedule.avgSleepEfficiency !== null && (
+                            <div className="flex items-center gap-1">
+                              <TrendingUp className="h-4 w-4" />
+                              <span>
+                                Efficiency:{" "}
+                                <span className="font-medium">
+                                  {schedule.avgSleepEfficiency.toFixed(0)}%
+                                </span>
+                              </span>
+                            </div>
+                          )}
+                          {schedule.adherencePercentage !== null && (
+                            <div className="flex items-center gap-1">
+                              <Target className="h-4 w-4" />
+                              <span>
+                                Adherence:{" "}
+                                <span className="font-medium">
+                                  {schedule.adherencePercentage}%
+                                </span>
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
 
-                  <p className="text-sm text-muted-foreground mb-4">
-                    {baselineStatus.message}
-                  </p>
+                {/* AI Coach Card — always visible */}
+                <Card className="mb-6 border-primary/20">
+                  <CardContent className="pt-6 pb-6">
+                    <div className="flex items-start gap-3">
+                      <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                        <Sparkles className="h-5 w-5 text-primary" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-semibold mb-1">Your AI Sleep Coach</h3>
+                        <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
+                          Ask questions and get personalised advice based on your real sleep
+                          data and CBT-i principles.
+                        </p>
+                        <Button asChild>
+                          <Link to="/chat">
+                            Chat with Your Coach
+                            <ChevronRight className="h-4 w-4 ml-2" />
+                          </Link>
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
 
-                  {/* Initialize button when baseline is complete */}
-                  {baselineStatus.isComplete && (
-                    <Button onClick={handleInitializeSchedule} disabled={isInitializing}>
-                      {isInitializing && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-                      Get My Sleep Schedule
+                {/* Post-baseline: Log sleep quick-link */}
+                {hasSchedule && (
+                  <div className="mb-6">
+                    <Button asChild variant="outline" className="w-full" size="lg">
+                      <Link to="/diary">
+                        <BookOpen className="h-4 w-4 mr-2" />
+                        Log Tonight's Sleep
+                      </Link>
                     </Button>
-                  )}
-                </CardContent>
-              </Card>
-            )}
+                  </div>
+                )}
 
-            {/* Efficiency Chart (only show if has schedule) */}
-            {!isLoading && scheduleData?.hasSchedule && (
-              <div className="mb-6">
-                <EfficiencyChart />
-              </div>
-            )}
+                {/* Efficiency Chart (post-baseline) */}
+                {hasSchedule && (
+                  <div className="mb-6">
+                    <EfficiencyChart />
+                  </div>
+                )}
 
-            {/* WHOOP Recovery Card (hidden if not connected) */}
-            {!isLoading && scheduleData?.hasSchedule && (
-              <div className="mb-6">
-                <RecoveryCard />
-              </div>
+                {/* WHOOP Recovery Card */}
+                {hasSchedule && (
+                  <div className="mb-6">
+                    <RecoveryCard />
+                  </div>
+                )}
+
+                {/* Coming Soon cards — show during baseline */}
+                {!hasSchedule && (
+                  <div className="space-y-4">
+                    <Card className="mb-0 opacity-75">
+                      <CardContent className="pt-6 pb-6">
+                        <div className="flex items-start gap-3">
+                          <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center shrink-0">
+                            <CalendarClock className="h-5 w-5 text-muted-foreground" />
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <h3 className="font-semibold text-muted-foreground">Sleep Schedule</h3>
+                              <Lock className="h-3.5 w-3.5 text-muted-foreground" />
+                            </div>
+                            <p className="text-sm text-muted-foreground leading-relaxed">
+                              Once we have enough data, you'll receive a personalised sleep
+                              window designed using CBT-i sleep restriction principles.
+                            </p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="mb-0 opacity-75">
+                      <CardContent className="pt-6 pb-6">
+                        <div className="flex items-start gap-3">
+                          <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center shrink-0">
+                            <BarChart3 className="h-5 w-5 text-muted-foreground" />
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <h3 className="font-semibold text-muted-foreground">Sleep Trends</h3>
+                              <Lock className="h-3.5 w-3.5 text-muted-foreground" />
+                            </div>
+                            <p className="text-sm text-muted-foreground leading-relaxed">
+                              Track your sleep efficiency over time and see your patterns
+                              improve week by week.
+                            </p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* WHOOP Recovery during baseline — show if connected */}
+                    <div>
+                      <RecoveryCard />
+                    </div>
+                  </div>
+                )}
+              </>
             )}
           </>
         )}

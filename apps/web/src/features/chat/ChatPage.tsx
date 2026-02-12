@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Send, Loader2 } from "lucide-react";
+import { Send, Loader2, ArrowLeft } from "lucide-react";
+import { Link } from "react-router-dom";
 import {
   sendChatMessage,
   getQuickReplies,
@@ -96,7 +97,16 @@ export function ChatPage() {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-3rem)] bg-background">
+    <div className="flex flex-col h-screen bg-background">
+      {/* Header */}
+      <div className="flex items-center gap-2 px-4 py-3 border-b">
+        <Button variant="ghost" size="icon" asChild className="shrink-0 h-9 w-9">
+          <Link to="/">
+            <ArrowLeft className="h-4 w-4" />
+          </Link>
+        </Button>
+        <h1 className="text-lg font-semibold">AI Sleep Coach</h1>
+      </div>
 
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto">
