@@ -188,12 +188,12 @@ export function OnboardingPage() {
       return {
         level: "Moderate insomnia",
         message:
-          "You're experiencing moderate sleep issues. Our program is designed to help people like you.",
+          "You're experiencing moderate sleep issues. Our programme is designed to help people like you.",
       };
     return {
       level: "Severe insomnia",
       message:
-        "You're experiencing significant sleep difficulties. Consider consulting a healthcare provider alongside using our program.",
+        "You're experiencing significant sleep difficulties. Consider consulting a healthcare provider alongside using our programme.",
     };
   };
 
@@ -254,7 +254,7 @@ export function OnboardingPage() {
                 Welcome to SleepAssured, {user?.name?.split(" ")[0]}!
               </CardTitle>
               <CardDescription>
-                Let's set up your personalized sleep improvement program
+                Let's set up your personalised sleep improvement programme
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -276,7 +276,7 @@ export function OnboardingPage() {
                   <li className="flex items-start gap-2">
                     <Check className="h-4 w-4 mt-0.5 text-primary" />
                     <span>
-                      Personalized sleep schedule based on CBT-I principles
+                      Personalised sleep schedule based on CBT-I principles
                     </span>
                   </li>
                   <li className="flex items-start gap-2">
