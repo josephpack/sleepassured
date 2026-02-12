@@ -4,6 +4,8 @@ import cors from "cors";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
 import pinoHttp from "pino-http";
+import path from "path";
+import { fileURLToPath } from "url";
 import logger from "./lib/logger.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import authRoutes from "./routes/auth.js";
@@ -16,6 +18,9 @@ import coachingRoutes from "./routes/coaching.js";
 import chatRoutes from "./routes/chat.js";
 import { startWhoopSyncScheduler } from "./jobs/whoop-sync.js";
 import { startWeeklyAdjustmentScheduler } from "./jobs/weekly-adjustment.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -50,14 +55,6 @@ app.get("/health", (_req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
-// Hello world route
-app.get("/", (_req, res) => {
-  res.json({
-    message: "Welcome to SleepAssured API",
-    version: "1.0.0",
-  });
-});
-
 // API routes
 app.use("/api/auth", authRoutes);
 app.use("/api/whoop", whoopRoutes);
@@ -67,6 +64,16 @@ app.use("/api/diary", diaryRoutes);
 app.use("/api/schedule", scheduleRoutes);
 app.use("/api/coaching", coachingRoutes);
 app.use("/api/chat", chatRoutes);
+
+// In production, serve the Vite-built frontend
+if (process.env.NODE_ENV === "production") {
+  const webDistPath = path.resolve(__dirname, "../../web/dist");
+  app.use(express.static(webDistPath));
+  // SPA catch-all: any non-API GET returns index.html for client-side routing
+  app.get("*", (_req, res) => {
+    res.sendFile(path.join(webDistPath, "index.html"));
+  });
+}
 
 // Global error handler (must be after routes)
 app.use(errorHandler);
