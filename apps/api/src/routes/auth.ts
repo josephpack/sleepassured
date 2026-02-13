@@ -74,6 +74,7 @@ router.post("/signup", authRateLimiter, async (req: Request, res: Response) => {
         name: true,
         email: true,
         onboardingCompleted: true,
+        isAdmin: true,
       },
     });
 
@@ -156,6 +157,7 @@ router.post("/login", authRateLimiter, async (req: Request, res: Response) => {
         name: user.name,
         email: user.email,
         onboardingCompleted: user.onboardingCompleted,
+        isAdmin: user.isAdmin,
       },
       accessToken,
     });
@@ -243,6 +245,7 @@ router.get("/me", authenticate, async (req: Request, res: Response) => {
         email: true,
         onboardingCompleted: true,
         targetWakeTime: true,
+        isAdmin: true,
       },
     });
 

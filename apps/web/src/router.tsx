@@ -3,6 +3,8 @@ import { LoginPage } from "@/pages/LoginPage";
 import { SignupPage } from "@/pages/SignupPage";
 import { DashboardPage } from "@/pages/DashboardPage";
 import { SettingsPage } from "@/pages/SettingsPage";
+import { AdminPage } from "@/pages/AdminPage";
+import { AdminUserPage } from "@/pages/AdminUserPage";
 import { OnboardingPage } from "@/pages/OnboardingPage";
 import { DiaryPage } from "@/features/diary";
 import { ChatPage } from "@/features/chat";
@@ -59,6 +61,14 @@ export const router = createBrowserRouter([
           {
             path: "/onboarding",
             element: <OnboardingPage />,
+          },
+          {
+            path: "/admin",
+            element: <AdminPage />,
+          },
+          {
+            path: "/admin/users/:id",
+            element: <AdminUserPage />,
           },
         ],
       },

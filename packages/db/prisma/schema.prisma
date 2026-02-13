@@ -19,6 +19,7 @@ model User {
   baselineComplete    Boolean   @default(false) @map("baseline_complete")
   flaggedForReview    Boolean   @default(false) @map("flagged_for_review")
   flaggedReason       String?   @map("flagged_reason")
+  isAdmin             Boolean   @default(false) @map("is_admin")
   createdAt           DateTime  @default(now()) @map("created_at")
   updatedAt           DateTime  @updatedAt @map("updated_at")
 

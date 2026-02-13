@@ -6,6 +6,7 @@ export interface User {
   email: string;
   onboardingCompleted: boolean;
   targetWakeTime?: string | null;
+  isAdmin?: boolean;
 }
 
 export interface AuthResponse {

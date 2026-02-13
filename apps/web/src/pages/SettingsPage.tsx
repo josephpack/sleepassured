@@ -1,7 +1,7 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { WhoopConnect } from "@/components/WhoopConnect";
-import { ArrowLeft, LogOut } from "lucide-react";
+import { ArrowLeft, LogOut, Shield } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export function SettingsPage() {
@@ -49,6 +49,19 @@ export function SettingsPage() {
             <h2 className="text-lg font-semibold mb-4">Integrations</h2>
             <WhoopConnect />
           </section>
+
+          {/* Admin */}
+          {user?.isAdmin && (
+            <section>
+              <h2 className="text-lg font-semibold mb-4">Admin</h2>
+              <Button variant="outline" className="w-full" asChild>
+                <Link to="/admin">
+                  <Shield className="h-4 w-4 mr-2" />
+                  Admin Dashboard
+                </Link>
+              </Button>
+            </section>
+          )}
 
           {/* Sign Out */}
           <section className="pt-4">
