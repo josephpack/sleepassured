@@ -31,7 +31,17 @@ if (process.env.NODE_ENV === "production") {
 }
 
 // Middleware
-app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+        "worker-src": ["'self'"],
+        "manifest-src": ["'self'"],
+      },
+    },
+  })
+);
 app.use(
   cors({
     origin: process.env.NODE_ENV === "production"
