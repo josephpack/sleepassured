@@ -1,7 +1,14 @@
 import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Activity, Loader2 } from "lucide-react";
-import { getLatestRecovery, WhoopRecoveryResponse } from "@/features/whoop/api/whoop";
+import { Button } from "@/components/ui/button";
+import { Activity, Loader2, Link2 } from "lucide-react";
+import { toast } from "sonner";
+import {
+  getLatestRecovery,
+  getWhoopAuthUrl,
+  WhoopRecoveryResponse,
+} from "@/features/whoop/api/whoop";
 
 function getRecoveryColor(score: number): string {
   if (score >= 67) return "text-green-500";
@@ -22,8 +29,10 @@ function getRecoveryLabel(score: number): string {
 }
 
 export function RecoveryCard() {
+  const location = useLocation();
   const [data, setData] = useState<WhoopRecoveryResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isConnecting, setIsConnecting] = useState(false);
 
   useEffect(() => {
     async function loadData() {
@@ -40,7 +49,18 @@ export function RecoveryCard() {
     loadData();
   }, []);
 
-  // Don't render if WHOOP is not connected or still loading
+  const handleConnect = async () => {
+    setIsConnecting(true);
+    try {
+      const { authUrl } = await getWhoopAuthUrl(location.pathname);
+      window.location.href = authUrl;
+    } catch (error) {
+      console.error("Failed to get auth URL:", error);
+      toast.error("Failed to initiate WHOOP connection");
+      setIsConnecting(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <Card>
@@ -51,9 +71,34 @@ export function RecoveryCard() {
     );
   }
 
-  // Hide entirely if not connected (per user preference)
+  // Not connected — show connect prompt
   if (!data?.connected) {
-    return null;
+    return (
+      <Card>
+        <CardContent className="pt-6 pb-6">
+          <div className="flex items-start gap-3">
+            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+              <Activity className="h-5 w-5 text-primary" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-semibold mb-1">Connect Your WHOOP</h3>
+              <p className="text-sm text-muted-foreground mb-3 leading-relaxed">
+                Sync your sleep data automatically and see your recovery score,
+                HRV, and resting heart rate right here.
+              </p>
+              <Button onClick={handleConnect} disabled={isConnecting} size="sm">
+                {isConnecting ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                ) : (
+                  <Link2 className="h-4 w-4 mr-2" />
+                )}
+                {isConnecting ? "Connecting..." : "Connect WHOOP"}
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
   }
 
   // Show message if connected but no recovery data yet
