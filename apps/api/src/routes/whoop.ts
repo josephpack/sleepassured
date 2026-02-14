@@ -27,7 +27,7 @@ function getFrontendUrl(req: Request): string {
     return "http://localhost:5173";
   }
   if (process.env.FRONTEND_URL) {
-    return process.env.FRONTEND_URL;
+    return process.env.FRONTEND_URL.replace(/\/+$/, "");
   }
   // Fallback: derive from the incoming request (same-origin deployment)
   const origin = `${req.protocol}://${req.get("host")}`;
@@ -163,7 +163,9 @@ router.get("/callback", async (req: Request, res: Response) => {
       },
     });
 
-    res.redirect(`${frontendUrl}${returnTo}?whoop_connected=true`);
+    const redirectUrl = `${frontendUrl}${returnTo}?whoop_connected=true`;
+    logger.info({ userId, redirectUrl }, "WHOOP connection successful, redirecting");
+    res.redirect(redirectUrl);
   } catch (error) {
     logger.error({ err: error }, "WHOOP callback error");
     const frontendUrl = getFrontendUrl(req);
