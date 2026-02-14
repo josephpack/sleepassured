@@ -19,6 +19,25 @@ import {
 
 const router = Router();
 
+// Derive the frontend URL for OAuth redirects.
+// Uses FRONTEND_URL env var, falling back to the request origin for
+// single-container deployments where API and frontend share a host.
+function getFrontendUrl(req: Request): string {
+  if (process.env.NODE_ENV !== "production") {
+    return "http://localhost:5173";
+  }
+  if (process.env.FRONTEND_URL) {
+    return process.env.FRONTEND_URL;
+  }
+  // Fallback: derive from the incoming request (same-origin deployment)
+  const origin = `${req.protocol}://${req.get("host")}`;
+  logger.warn(
+    { origin },
+    "FRONTEND_URL is not set — falling back to request origin for redirect"
+  );
+  return origin;
+}
+
 // Store OAuth states temporarily (in production, use Redis or similar)
 const pendingOAuthStates = new Map<
   string,
@@ -83,10 +102,7 @@ router.get("/callback", async (req: Request, res: Response) => {
     const { code, state, error: oauthError } = req.query;
 
     // Frontend URL for redirects
-    const frontendUrl =
-      process.env.NODE_ENV === "production"
-        ? process.env.FRONTEND_URL
-        : "http://localhost:5173";
+    const frontendUrl = getFrontendUrl(req);
 
     // Handle OAuth errors
     if (oauthError) {
@@ -150,10 +166,7 @@ router.get("/callback", async (req: Request, res: Response) => {
     res.redirect(`${frontendUrl}${returnTo}?whoop_connected=true`);
   } catch (error) {
     logger.error({ err: error }, "WHOOP callback error");
-    const frontendUrl =
-      process.env.NODE_ENV === "production"
-        ? process.env.FRONTEND_URL
-        : "http://localhost:5173";
+    const frontendUrl = getFrontendUrl(req);
     res.redirect(`${frontendUrl}/settings?whoop_error=connection_failed`);
   }
 });
