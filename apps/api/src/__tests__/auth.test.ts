@@ -245,11 +245,11 @@ describe("Auth API", () => {
         .send({ ...testUser, rememberMe: true })
         .expect(201);
 
-      // Check that the cookie has a 30-day max age
+      // Check that the cookie has a 90-day max age
       const cookies = response.headers["set-cookie"];
       expect(cookies).toBeDefined();
       const cookieStr = Array.isArray(cookies) ? cookies[0] : cookies!;
-      expect(cookieStr).toContain("Max-Age=2592000"); // 30 days in seconds
+      expect(cookieStr).toContain("Max-Age=7776000"); // 90 days in seconds
     });
 
     it("creates refresh token with standard expiry when rememberMe is false", async () => {
@@ -258,11 +258,11 @@ describe("Auth API", () => {
         .send({ ...testUser, rememberMe: false })
         .expect(201);
 
-      // Check that the cookie has a 7-day max age
+      // Check that the cookie has a 30-day max age
       const cookies = response.headers["set-cookie"];
       expect(cookies).toBeDefined();
       const cookieStr = Array.isArray(cookies) ? cookies[0] : cookies!;
-      expect(cookieStr).toContain("Max-Age=604800"); // 7 days in seconds
+      expect(cookieStr).toContain("Max-Age=2592000"); // 30 days in seconds
     });
   });
 });

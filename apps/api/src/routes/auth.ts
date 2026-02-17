@@ -33,7 +33,7 @@ const getCookieOptions = (rememberMe: boolean) => ({
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
   sameSite: "lax" as const,
-  maxAge: rememberMe ? 30 * 24 * 60 * 60 * 1000 : 7 * 24 * 60 * 60 * 1000,
+  maxAge: rememberMe ? 90 * 24 * 60 * 60 * 1000 : 30 * 24 * 60 * 60 * 1000,
   path: "/",
 });
 
@@ -223,6 +223,20 @@ router.post("/refresh", refreshRateLimiter, async (req: Request, res: Response) 
       res.status(401).json({ error: "Refresh token expired or revoked" });
       return;
     }
+
+    // Rotate refresh token (sliding expiry — resets the clock each time)
+    const newRefreshToken = generateRefreshToken(decoded.userId);
+    await prisma.$transaction([
+      prisma.refreshToken.delete({ where: { id: storedToken.id } }),
+      prisma.refreshToken.create({
+        data: {
+          token: newRefreshToken,
+          userId: decoded.userId,
+          expiresAt: getRefreshTokenExpiry(),
+        },
+      }),
+    ]);
+    res.cookie("refreshToken", newRefreshToken, getCookieOptions(false));
 
     // Generate new access token
     const accessToken = generateAccessToken(decoded.userId);
