@@ -405,8 +405,9 @@ router.post("/sync", authenticate, async (req: Request, res: Response) => {
       recordsSynced: syncedCount,
     });
   } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error";
     logger.error({ err: error }, "WHOOP sync error");
-    res.status(500).json({ error: "Failed to sync WHOOP data" });
+    res.status(500).json({ error: "Failed to sync WHOOP data", detail: message });
   }
 });
 
