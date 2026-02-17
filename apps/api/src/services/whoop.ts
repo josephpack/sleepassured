@@ -63,7 +63,7 @@ export interface WhoopSleepScore {
 }
 
 export interface WhoopSleepRecord {
-  id: number;
+  id: string;
   user_id: number;
   created_at: string;
   updated_at: string;
@@ -77,7 +77,7 @@ export interface WhoopSleepRecord {
 
 export interface WhoopRecoveryRecord {
   cycle_id: number;
-  sleep_id: number;
+  sleep_id: string;
   user_id: number;
   created_at: string;
   updated_at: string;
@@ -218,7 +218,7 @@ export async function refreshAccessToken(
 export async function fetchUserProfile(
   accessToken: string
 ): Promise<WhoopUserProfile> {
-  const response = await fetch(`${WHOOP_API_BASE}/v1/user/profile/basic`, {
+  const response = await fetch(`${WHOOP_API_BASE}/v2/user/profile/basic`, {
     headers: {
       Authorization: `Bearer ${accessToken}`,
     },
@@ -252,7 +252,7 @@ export async function fetchSleepData(
     }
 
     const response = await fetch(
-      `${WHOOP_API_BASE}/v1/activity/sleep?${params.toString()}`,
+      `${WHOOP_API_BASE}/v2/activity/sleep?${params.toString()}`,
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,
@@ -293,7 +293,7 @@ export async function fetchRecoveryData(
     }
 
     const response = await fetch(
-      `${WHOOP_API_BASE}/v1/recovery?${params.toString()}`,
+      `${WHOOP_API_BASE}/v2/recovery?${params.toString()}`,
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,

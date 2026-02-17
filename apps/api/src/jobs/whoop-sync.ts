@@ -72,7 +72,7 @@ async function syncUserData(userId: string): Promise<SyncResult> {
     ]);
 
     // Create a map of recovery scores by sleep ID
-    const recoveryBySleepId = new Map<number, WhoopRecoveryRecord>();
+    const recoveryBySleepId = new Map<string, WhoopRecoveryRecord>();
     for (const recovery of recoveryRecords) {
       if (recovery.sleep_id) {
         recoveryBySleepId.set(recovery.sleep_id, recovery);
@@ -97,10 +97,10 @@ async function syncUserData(userId: string): Promise<SyncResult> {
         stageSummary.total_rem_sleep_time_milli;
 
       await prisma.whoopSleepRecord.upsert({
-        where: { whoopSleepId: BigInt(record.id) },
+        where: { whoopSleepId: record.id },
         create: {
           userId,
-          whoopSleepId: BigInt(record.id),
+          whoopSleepId: record.id,
           startTime: new Date(record.start),
           endTime: new Date(record.end),
           totalSleepDurationMs: BigInt(totalSleepMs),

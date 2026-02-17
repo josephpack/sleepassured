@@ -142,7 +142,7 @@ model WhoopConnection {
 model WhoopSleepRecord {
   id                   String   @id @default(uuid())
   userId               String   @map("user_id")
-  whoopSleepId         BigInt   @unique @map("whoop_sleep_id")
+  whoopSleepId         String   @unique @map("whoop_sleep_id")
   startTime            DateTime @map("start_time")
   endTime              DateTime @map("end_time")
   totalSleepDurationMs BigInt   @map("total_sleep_duration_ms")

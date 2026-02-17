@@ -447,7 +447,7 @@ router.get("/prefill/:date", authenticate, async (req: Request, res: Response) =
       ]);
 
       // Create a map of recovery scores by sleep ID
-      const recoveryBySleepId = new Map<number, WhoopRecoveryRecord>();
+      const recoveryBySleepId = new Map<string, WhoopRecoveryRecord>();
       for (const recovery of recoveryRecords) {
         if (recovery.sleep_id) {
           recoveryBySleepId.set(recovery.sleep_id, recovery);
@@ -481,10 +481,10 @@ router.get("/prefill/:date", authenticate, async (req: Request, res: Response) =
       const recovery = recoveryBySleepId.get(matchingRecord.id);
 
       await prisma.whoopSleepRecord.upsert({
-        where: { whoopSleepId: BigInt(matchingRecord.id) },
+        where: { whoopSleepId: matchingRecord.id },
         create: {
           userId,
-          whoopSleepId: BigInt(matchingRecord.id),
+          whoopSleepId: matchingRecord.id,
           startTime: new Date(matchingRecord.start),
           endTime: new Date(matchingRecord.end),
           totalSleepDurationMs: BigInt(totalSleepMs),
