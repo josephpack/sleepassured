@@ -3,6 +3,7 @@ import {
   decryptToken,
   encryptToken,
   refreshAccessToken,
+  handleTokenRefreshFailure,
   fetchSleepData,
   fetchRecoveryData,
   getTokenExpiresAt,
@@ -30,6 +31,10 @@ async function syncUserData(userId: string): Promise<SyncResult> {
       return { userId, success: false, error: "No connection found" };
     }
 
+    if (connection.status === "NEEDS_REAUTH") {
+      return { userId, success: false, error: "Needs re-auth" };
+    }
+
     // Decrypt tokens
     let accessToken = decryptToken(connection.accessToken);
     let refreshToken = decryptToken(connection.refreshToken);
@@ -51,12 +56,11 @@ async function syncUserData(userId: string): Promise<SyncResult> {
           },
         });
       } catch (error) {
-        // Token refresh failed - user may need to re-authenticate
-        logger.error({ err: error, userId }, "Token refresh failed");
+        await handleTokenRefreshFailure(userId);
         return {
           userId,
           success: false,
-          error: "Token refresh failed - re-authentication required",
+          error: "Token refresh failed — marked as NEEDS_REAUTH",
         };
       }
     }
@@ -167,8 +171,9 @@ export async function runWhoopSyncJob(): Promise<{
 }> {
   logger.info("Starting daily WHOOP sync job");
 
-  // Get all users with WHOOP connections
+  // Get all users with active WHOOP connections (skip NEEDS_REAUTH)
   const connections = await prisma.whoopConnection.findMany({
+    where: { status: "ACTIVE" },
     select: { userId: true },
   });
 

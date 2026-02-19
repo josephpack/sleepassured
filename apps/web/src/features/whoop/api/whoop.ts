@@ -4,6 +4,7 @@ export interface WhoopStatus {
   connected: boolean;
   connectedAt?: string;
   lastSyncedAt?: string | null;
+  needsReauth?: boolean;
 }
 
 export interface WhoopAuthUrl {
@@ -12,7 +13,8 @@ export interface WhoopAuthUrl {
 
 export interface WhoopSyncResult {
   message: string;
-  recordsSynced: number;
+  recordsSynced?: number;
+  needsReauth?: boolean;
 }
 
 export async function getWhoopStatus(): Promise<WhoopStatus> {

@@ -16,7 +16,7 @@ import {
   syncWhoopData,
   WhoopStatus,
 } from "@/features/whoop/api/whoop";
-import { Loader2, Link2, Link2Off, RefreshCw, CheckCircle2 } from "lucide-react";
+import { Loader2, Link2, Link2Off, RefreshCw, CheckCircle2, AlertTriangle } from "lucide-react";
 
 export function WhoopConnect() {
   const location = useLocation();
@@ -143,55 +143,93 @@ export function WhoopConnect() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           WHOOP Integration
-          {status?.connected && (
+          {status?.connected && !status.needsReauth && (
             <CheckCircle2 className="h-5 w-5 text-green-500" />
+          )}
+          {status?.needsReauth && (
+            <AlertTriangle className="h-5 w-5 text-yellow-500" />
           )}
         </CardTitle>
         <CardDescription>
-          {status?.connected
-            ? "Your WHOOP account is connected"
-            : "Connect your WHOOP account to sync sleep data automatically"}
+          {status?.needsReauth
+            ? "Your WHOOP connection has expired. Please reconnect to resume syncing."
+            : status?.connected
+              ? "Your WHOOP account is connected"
+              : "Connect your WHOOP account to sync sleep data automatically"}
         </CardDescription>
       </CardHeader>
       <CardContent>
         {status?.connected ? (
           <div className="space-y-4">
-            <div className="text-sm text-muted-foreground space-y-1">
-              <p>
-                <span className="font-medium">Connected:</span>{" "}
-                {formatDate(status.connectedAt)}
-              </p>
-              <p>
-                <span className="font-medium">Last synced:</span>{" "}
-                {formatDate(status.lastSyncedAt)}
-              </p>
-            </div>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                onClick={handleSync}
-                disabled={isSyncing}
-              >
-                {isSyncing ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <RefreshCw className="h-4 w-4" />
-                )}
-                {isSyncing ? "Syncing..." : "Sync Now"}
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={handleDisconnect}
-                disabled={isDisconnecting}
-              >
-                {isDisconnecting ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Link2Off className="h-4 w-4" />
-                )}
-                Disconnect
-              </Button>
-            </div>
+            {status.needsReauth ? (
+              <>
+                <p className="text-sm text-muted-foreground">
+                  Your WHOOP connection has expired. Please reconnect to resume
+                  automatic sleep data syncing.
+                </p>
+                <div className="flex gap-2">
+                  <Button onClick={handleConnect} disabled={isConnecting}>
+                    {isConnecting ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Link2 className="h-4 w-4" />
+                    )}
+                    {isConnecting ? "Connecting..." : "Reconnect"}
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={handleDisconnect}
+                    disabled={isDisconnecting}
+                  >
+                    {isDisconnecting ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Link2Off className="h-4 w-4" />
+                    )}
+                    Disconnect
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="text-sm text-muted-foreground space-y-1">
+                  <p>
+                    <span className="font-medium">Connected:</span>{" "}
+                    {formatDate(status.connectedAt)}
+                  </p>
+                  <p>
+                    <span className="font-medium">Last synced:</span>{" "}
+                    {formatDate(status.lastSyncedAt)}
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={handleSync}
+                    disabled={isSyncing}
+                  >
+                    {isSyncing ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <RefreshCw className="h-4 w-4" />
+                    )}
+                    {isSyncing ? "Syncing..." : "Sync Now"}
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={handleDisconnect}
+                    disabled={isDisconnecting}
+                  >
+                    {isDisconnecting ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Link2Off className="h-4 w-4" />
+                    )}
+                    Disconnect
+                  </Button>
+                </div>
+              </>
+            )}
           </div>
         ) : (
           <div className="space-y-4">

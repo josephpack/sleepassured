@@ -124,15 +124,21 @@ model SleepWindow {
   @@map("sleep_windows")
 }
 
+enum WhoopConnectionStatus {
+  ACTIVE
+  NEEDS_REAUTH
+}
+
 model WhoopConnection {
-  id             String    @id @default(uuid())
-  userId         String    @unique @map("user_id")
-  whoopUserId    String    @map("whoop_user_id")
-  accessToken    String    @map("access_token") // Encrypted
-  refreshToken   String    @map("refresh_token") // Encrypted
-  tokenExpiresAt DateTime  @map("token_expires_at")
-  connectedAt    DateTime  @default(now()) @map("connected_at")
-  lastSyncedAt   DateTime? @map("last_synced_at")
+  id             String                @id @default(uuid())
+  userId         String                @unique @map("user_id")
+  whoopUserId    String                @map("whoop_user_id")
+  accessToken    String                @map("access_token") // Encrypted
+  refreshToken   String                @map("refresh_token") // Encrypted
+  tokenExpiresAt DateTime              @map("token_expires_at")
+  status         WhoopConnectionStatus @default(ACTIVE)
+  connectedAt    DateTime              @default(now()) @map("connected_at")
+  lastSyncedAt   DateTime?             @map("last_synced_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 

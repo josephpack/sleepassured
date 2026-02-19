@@ -7,6 +7,7 @@ import {
   getAuthorizationUrl,
   exchangeCodeForTokens,
   refreshAccessToken as whoopRefreshToken,
+  handleTokenRefreshFailure,
   fetchUserProfile,
   fetchSleepData,
   fetchRecoveryData,
@@ -61,12 +62,13 @@ router.get("/auth-url", authenticate, async (req: Request, res: Response) => {
   try {
     const userId = req.user!.userId;
 
-    // Check if already connected
+    // Check if already connected (allow re-auth if NEEDS_REAUTH)
     const existingConnection = await prisma.whoopConnection.findUnique({
       where: { userId },
+      select: { status: true },
     });
 
-    if (existingConnection) {
+    if (existingConnection && existingConnection.status !== "NEEDS_REAUTH") {
       res.status(400).json({ error: "WHOOP account already connected" });
       return;
     }
@@ -146,7 +148,7 @@ router.get("/callback", async (req: Request, res: Response) => {
       return;
     }
 
-    // Create or update the WHOOP connection
+    // Create or update the WHOOP connection (reset status to ACTIVE on reconnect)
     await prisma.whoopConnection.upsert({
       where: { userId },
       create: {
@@ -155,12 +157,14 @@ router.get("/callback", async (req: Request, res: Response) => {
         accessToken: encryptToken(tokens.access_token),
         refreshToken: encryptToken(tokens.refresh_token),
         tokenExpiresAt: getTokenExpiresAt(tokens.expires_in),
+        status: "ACTIVE",
       },
       update: {
         whoopUserId: profile.user_id.toString(),
         accessToken: encryptToken(tokens.access_token),
         refreshToken: encryptToken(tokens.refresh_token),
         tokenExpiresAt: getTokenExpiresAt(tokens.expires_in),
+        status: "ACTIVE",
       },
     });
 
@@ -186,6 +190,7 @@ router.get("/status", authenticate, async (req: Request, res: Response) => {
         connectedAt: true,
         lastSyncedAt: true,
         whoopUserId: true,
+        status: true,
       },
     });
 
@@ -198,6 +203,7 @@ router.get("/status", authenticate, async (req: Request, res: Response) => {
       connected: true,
       connectedAt: connection.connectedAt,
       lastSyncedAt: connection.lastSyncedAt,
+      needsReauth: connection.status === "NEEDS_REAUTH",
     });
   } catch (error) {
     logger.error({ err: error }, "Error checking WHOOP status");
@@ -248,25 +254,36 @@ router.get("/sync-now", authenticate, async (req: Request, res: Response) => {
       return;
     }
 
+    if (connection.status === "NEEDS_REAUTH") {
+      res.json({ message: "WHOOP connection needs re-authorisation", needsReauth: true });
+      return;
+    }
+
     // Decrypt tokens
     let accessToken = decryptToken(connection.accessToken);
     let refreshToken = decryptToken(connection.refreshToken);
 
     // Refresh token if expired
     if (isTokenExpired(connection.tokenExpiresAt)) {
-      const newTokens = await whoopRefreshToken(refreshToken);
-      accessToken = newTokens.access_token;
-      refreshToken = newTokens.refresh_token;
+      try {
+        const newTokens = await whoopRefreshToken(refreshToken);
+        accessToken = newTokens.access_token;
+        refreshToken = newTokens.refresh_token;
 
-      // Update stored tokens
-      await prisma.whoopConnection.update({
-        where: { userId },
-        data: {
-          accessToken: encryptToken(accessToken),
-          refreshToken: encryptToken(refreshToken),
-          tokenExpiresAt: getTokenExpiresAt(newTokens.expires_in),
-        },
-      });
+        // Update stored tokens
+        await prisma.whoopConnection.update({
+          where: { userId },
+          data: {
+            accessToken: encryptToken(accessToken),
+            refreshToken: encryptToken(refreshToken),
+            tokenExpiresAt: getTokenExpiresAt(newTokens.expires_in),
+          },
+        });
+      } catch {
+        await handleTokenRefreshFailure(userId);
+        res.json({ message: "WHOOP connection needs re-authorisation", needsReauth: true });
+        return;
+      }
     }
 
     // Update last synced timestamp
@@ -298,6 +315,11 @@ router.post("/sync", authenticate, async (req: Request, res: Response) => {
       return;
     }
 
+    if (connection.status === "NEEDS_REAUTH") {
+      res.json({ message: "WHOOP connection needs re-authorisation", needsReauth: true });
+      return;
+    }
+
     // Throttle: if autoPopulate is requested and last sync was < 1 hour ago, skip
     if (autoPopulate && connection.lastSyncedAt) {
       const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
@@ -313,19 +335,25 @@ router.post("/sync", authenticate, async (req: Request, res: Response) => {
 
     // Refresh token if expired
     if (isTokenExpired(connection.tokenExpiresAt)) {
-      const newTokens = await whoopRefreshToken(refreshToken);
-      accessToken = newTokens.access_token;
-      refreshToken = newTokens.refresh_token;
+      try {
+        const newTokens = await whoopRefreshToken(refreshToken);
+        accessToken = newTokens.access_token;
+        refreshToken = newTokens.refresh_token;
 
-      // Update stored tokens
-      await prisma.whoopConnection.update({
-        where: { userId },
-        data: {
-          accessToken: encryptToken(accessToken),
-          refreshToken: encryptToken(refreshToken),
-          tokenExpiresAt: getTokenExpiresAt(newTokens.expires_in),
-        },
-      });
+        // Update stored tokens
+        await prisma.whoopConnection.update({
+          where: { userId },
+          data: {
+            accessToken: encryptToken(accessToken),
+            refreshToken: encryptToken(refreshToken),
+            tokenExpiresAt: getTokenExpiresAt(newTokens.expires_in),
+          },
+        });
+      } catch {
+        await handleTokenRefreshFailure(userId);
+        res.json({ message: "WHOOP connection needs re-authorisation", needsReauth: true });
+        return;
+      }
     }
 
     // Sync last 7 days of data

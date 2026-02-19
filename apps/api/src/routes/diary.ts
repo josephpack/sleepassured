@@ -7,6 +7,7 @@ import {
   decryptToken,
   isTokenExpired,
   refreshAccessToken as whoopRefreshToken,
+  handleTokenRefreshFailure,
   encryptToken,
   getTokenExpiresAt,
   fetchSleepData,
@@ -394,6 +395,11 @@ router.get("/prefill/:date", authenticate, async (req: Request, res: Response) =
       return;
     }
 
+    if (connection.status === "NEEDS_REAUTH") {
+      res.json({ prefillData: null, message: "WHOOP connection needs re-authorisation" });
+      return;
+    }
+
     // Trigger on-demand sync for this date range
     let accessToken = decryptToken(connection.accessToken);
     let refreshToken = decryptToken(connection.refreshToken);
@@ -413,7 +419,8 @@ router.get("/prefill/:date", authenticate, async (req: Request, res: Response) =
           },
         });
       } catch {
-        res.json({ prefillData: null, message: "WHOOP token refresh failed" });
+        await handleTokenRefreshFailure(userId);
+        res.json({ prefillData: null, message: "WHOOP connection needs re-authorisation" });
         return;
       }
     }

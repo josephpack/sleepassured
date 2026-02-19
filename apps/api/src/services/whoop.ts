@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import { prisma } from "@sleepassured/db";
 import logger from "../lib/logger.js";
 
 // WHOOP API configuration
@@ -319,6 +320,15 @@ export async function fetchRecoveryData(
   } while (nextToken);
 
   return allRecords;
+}
+
+// Mark a connection as needing re-authorisation after a token refresh failure
+export async function handleTokenRefreshFailure(userId: string): Promise<void> {
+  logger.warn({ userId }, "WHOOP token refresh failed — marking connection as NEEDS_REAUTH");
+  await prisma.whoopConnection.update({
+    where: { userId },
+    data: { status: "NEEDS_REAUTH" },
+  });
 }
 
 // Revoke access (for disconnect)

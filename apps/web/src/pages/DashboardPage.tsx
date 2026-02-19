@@ -23,6 +23,7 @@ import {
   BarChart3,
   CalendarClock,
   BookOpen,
+  AlertTriangle,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -66,7 +67,7 @@ function getAdjustmentDescription(
 
 export function DashboardPage() {
   const { user } = useAuth();
-  useWhoopAutoSync();
+  const { needsReauth } = useWhoopAutoSync();
   const [scheduleData, setScheduleData] = useState<CurrentScheduleResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isInitializing, setIsInitializing] = useState(false);
@@ -140,6 +141,26 @@ export function DashboardPage() {
             </Button>
           </div>
         </div>
+
+        {/* WHOOP reconnect banner */}
+        {needsReauth && (
+          <Card className="mb-6 border-yellow-500/30 bg-yellow-50/50 dark:bg-yellow-950/20">
+            <CardContent className="pt-5 pb-5">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="h-5 w-5 text-yellow-600 shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-sm font-medium">Your WHOOP connection needs to be refreshed</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Sleep data syncing is paused until you reconnect.
+                  </p>
+                </div>
+                <Button variant="outline" size="sm" asChild>
+                  <Link to="/settings">Reconnect</Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Onboarding CTA for users who haven't completed onboarding */}
         {!user?.onboardingCompleted && (
