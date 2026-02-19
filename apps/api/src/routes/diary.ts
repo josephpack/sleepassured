@@ -13,6 +13,10 @@ import {
   fetchRecoveryData,
   WhoopRecoveryRecord,
 } from "../services/whoop.js";
+import {
+  calculateSleepMetrics,
+  checkAndUpdateBaselineStatus,
+} from "../services/diary-utils.js";
 
 const router = Router();
 
@@ -48,26 +52,6 @@ function isWithinBackfillLimit(dateStr: string): boolean {
   const sevenDaysAgo = new Date(today);
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
   return entryDate >= sevenDaysAgo && entryDate <= today;
-}
-
-// Helper to calculate sleep metrics
-function calculateSleepMetrics(data: {
-  bedtime: Date;
-  outOfBedTime: Date;
-  sleepOnsetLatencyMins: number;
-  wakeAfterSleepOnsetMins: number;
-}): { timeInBedMins: number; totalSleepTimeMins: number; sleepEfficiency: number } {
-  const timeInBedMins = Math.round(
-    (data.outOfBedTime.getTime() - data.bedtime.getTime()) / (1000 * 60)
-  );
-  const totalSleepTimeMins = Math.max(
-    0,
-    timeInBedMins - data.sleepOnsetLatencyMins - data.wakeAfterSleepOnsetMins
-  );
-  const sleepEfficiency =
-    timeInBedMins > 0 ? (totalSleepTimeMins / timeInBedMins) * 100 : 0;
-
-  return { timeInBedMins, totalSleepTimeMins, sleepEfficiency };
 }
 
 // Map diary source string to enum
@@ -561,48 +545,5 @@ router.get("/prefill/:date", authenticate, async (req: Request, res: Response) =
     res.status(500).json({ error: "Failed to get prefill data" });
   }
 });
-
-// Helper function to check and update baseline status
-async function checkAndUpdateBaselineStatus(userId: string): Promise<void> {
-  // Get therapy start date or set it if not set
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { therapyStartDate: true, baselineComplete: true },
-  });
-
-  if (!user) return;
-
-  // If baseline is already complete, don't re-check
-  if (user.baselineComplete) return;
-
-  // Count entries in the last 7 days
-  const sevenDaysAgo = new Date();
-  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-  sevenDaysAgo.setHours(0, 0, 0, 0);
-
-  const entryCount = await prisma.sleepDiary.count({
-    where: {
-      userId,
-      date: { gte: sevenDaysAgo },
-    },
-  });
-
-  // If we have at least 5 entries, mark baseline as complete
-  if (entryCount >= 5) {
-    await prisma.user.update({
-      where: { id: userId },
-      data: {
-        baselineComplete: true,
-        therapyStartDate: user.therapyStartDate || new Date(),
-      },
-    });
-  } else if (!user.therapyStartDate) {
-    // Set therapy start date on first diary entry
-    await prisma.user.update({
-      where: { id: userId },
-      data: { therapyStartDate: new Date() },
-    });
-  }
-}
 
 export default router;

@@ -9,6 +9,7 @@ import {
   isTokenExpired,
   WhoopRecoveryRecord,
 } from "../services/whoop.js";
+import { autoCreateDiaryFromWhoop } from "../services/diary-auto-create.js";
 import logger from "../lib/logger.js";
 
 interface SyncResult {
@@ -142,6 +143,9 @@ async function syncUserData(userId: string): Promise<SyncResult> {
       where: { userId },
       data: { lastSyncedAt: new Date() },
     });
+
+    // Auto-create diary entries from synced WHOOP data
+    await autoCreateDiaryFromWhoop(userId);
 
     return { userId, success: true, recordsSynced: syncedCount };
   } catch (error) {

@@ -144,7 +144,12 @@ export function DiaryList({ onEdit, refreshTrigger }: DiaryListProps) {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-2">
                 <span className="font-medium">{formatDate(entry.date)}</span>
-                {entry.source !== "MANUAL" && (
+                {entry.source === "WHOOP" && (
+                  <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">
+                    Auto
+                  </span>
+                )}
+                {entry.source === "HYBRID" && (
                   <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">
                     WHOOP
                   </span>

@@ -32,6 +32,7 @@ import {
 } from "@/features/diary/api";
 import { EfficiencyChart } from "@/components/dashboard/EfficiencyChart";
 import { RecoveryCard } from "@/components/dashboard/RecoveryCard";
+import { useWhoopAutoSync } from "@/hooks/useWhoopAutoSync";
 
 // Format time from HH:MM to display format
 function formatTimeDisplay(timeStr: string): string {
@@ -65,6 +66,7 @@ function getAdjustmentDescription(
 
 export function DashboardPage() {
   const { user } = useAuth();
+  useWhoopAutoSync();
   const [scheduleData, setScheduleData] = useState<CurrentScheduleResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isInitializing, setIsInitializing] = useState(false);

@@ -83,7 +83,9 @@ export function DiaryEntryForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPrefilling, setIsPrefilling] = useState(false);
   const [hasWhoop, setHasWhoop] = useState(false);
-  const [whoopRecordId, setWhoopRecordId] = useState<string | undefined>();
+  const [whoopRecordId, setWhoopRecordId] = useState<string | undefined>(
+    existingEntry?.whoopSleepRecordId ?? undefined
+  );
 
   const isEditing = !!existingEntry;
 
@@ -185,6 +187,13 @@ export function DiaryEntryForm({
       const wakeIsNextDay = bedtimeIsEvening && wakeHour >= 0 && wakeHour < 18;
       const outIsNextDay = bedtimeIsEvening && outHour >= 0 && outHour < 18;
 
+      // If editing a WHOOP-sourced entry (or prefilled from WHOOP), mark as hybrid
+      const isWhoopSourced =
+        whoopRecordId ||
+        (existingEntry?.source === "WHOOP") ||
+        (existingEntry?.source === "HYBRID");
+      const source = isWhoopSourced ? "hybrid" : "manual";
+
       const entry: DiaryEntryInput = {
         date: data.date,
         bedtime: createDateTime(data.date, data.bedtime),
@@ -194,8 +203,8 @@ export function DiaryEntryForm({
         finalWakeTime: createDateTime(data.date, data.finalWakeTime, wakeIsNextDay),
         outOfBedTime: createDateTime(data.date, data.outOfBedTime, outIsNextDay),
         subjectiveQuality: data.subjectiveQuality,
-        source: whoopRecordId ? "hybrid" : "manual",
-        whoopSleepRecordId: whoopRecordId,
+        source,
+        whoopSleepRecordId: whoopRecordId ?? existingEntry?.whoopSleepRecordId ?? undefined,
         notes: data.notes,
       };
 

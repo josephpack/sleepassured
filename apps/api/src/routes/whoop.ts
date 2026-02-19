@@ -16,6 +16,7 @@ import {
   isTokenExpired,
   WhoopRecoveryRecord,
 } from "../services/whoop.js";
+import { autoCreateDiaryFromWhoop } from "../services/diary-auto-create.js";
 
 const router = Router();
 
@@ -282,10 +283,11 @@ router.get("/sync-now", authenticate, async (req: Request, res: Response) => {
 });
 
 // POST /api/whoop/sync
-// Manually trigger a data sync
+// Manually trigger a data sync. Pass ?autoPopulate=true to also create diary entries.
 router.post("/sync", authenticate, async (req: Request, res: Response) => {
   try {
     const userId = req.user!.userId;
+    const autoPopulate = req.query.autoPopulate === "true";
 
     const connection = await prisma.whoopConnection.findUnique({
       where: { userId },
@@ -294,6 +296,15 @@ router.post("/sync", authenticate, async (req: Request, res: Response) => {
     if (!connection) {
       res.status(404).json({ error: "No WHOOP connection found" });
       return;
+    }
+
+    // Throttle: if autoPopulate is requested and last sync was < 1 hour ago, skip
+    if (autoPopulate && connection.lastSyncedAt) {
+      const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+      if (connection.lastSyncedAt > oneHourAgo) {
+        res.json({ message: "Recently synced", skipped: true });
+        return;
+      }
     }
 
     // Decrypt tokens
@@ -400,9 +411,17 @@ router.post("/sync", authenticate, async (req: Request, res: Response) => {
       data: { lastSyncedAt: new Date() },
     });
 
+    // Auto-populate diary entries from synced WHOOP data
+    let diaryEntriesCreated = 0;
+    if (autoPopulate) {
+      const result = await autoCreateDiaryFromWhoop(userId);
+      diaryEntriesCreated = result.created;
+    }
+
     res.json({
       message: "Sync completed successfully",
       recordsSynced: syncedCount,
+      diaryEntriesCreated,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
