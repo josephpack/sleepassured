@@ -29,13 +29,13 @@ const loginSchema = z.object({
 });
 
 // Cookie configuration
-const getCookieOptions = (rememberMe: boolean) => ({
+const COOKIE_OPTIONS = {
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
   sameSite: "lax" as const,
   maxAge: 90 * 24 * 60 * 60 * 1000,
   path: "/",
-});
+};
 
 // POST /api/auth/signup
 router.post("/signup", authRateLimiter, async (req: Request, res: Response) => {
@@ -49,7 +49,7 @@ router.post("/signup", authRateLimiter, async (req: Request, res: Response) => {
       return;
     }
 
-    const { name, email, password, rememberMe } = result.data;
+    const { name, email, password } = result.data;
 
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({
@@ -80,19 +80,19 @@ router.post("/signup", authRateLimiter, async (req: Request, res: Response) => {
 
     // Generate tokens
     const accessToken = generateAccessToken(user.id);
-    const refreshToken = generateRefreshToken(user.id, rememberMe);
+    const refreshToken = generateRefreshToken(user.id);
 
     // Store refresh token in database
     await prisma.refreshToken.create({
       data: {
         token: refreshToken,
         userId: user.id,
-        expiresAt: getRefreshTokenExpiry(rememberMe),
+        expiresAt: getRefreshTokenExpiry(),
       },
     });
 
     // Set refresh token as HTTP-only cookie
-    res.cookie("refreshToken", refreshToken, getCookieOptions(rememberMe));
+    res.cookie("refreshToken", refreshToken, COOKIE_OPTIONS);
 
     res.status(201).json({
       user,
@@ -116,7 +116,7 @@ router.post("/login", authRateLimiter, async (req: Request, res: Response) => {
       return;
     }
 
-    const { email, password, rememberMe } = result.data;
+    const { email, password } = result.data;
 
     // Find user
     const user = await prisma.user.findUnique({
@@ -137,19 +137,19 @@ router.post("/login", authRateLimiter, async (req: Request, res: Response) => {
 
     // Generate tokens
     const accessToken = generateAccessToken(user.id);
-    const refreshToken = generateRefreshToken(user.id, rememberMe);
+    const refreshToken = generateRefreshToken(user.id);
 
     // Store refresh token in database
     await prisma.refreshToken.create({
       data: {
         token: refreshToken,
         userId: user.id,
-        expiresAt: getRefreshTokenExpiry(rememberMe),
+        expiresAt: getRefreshTokenExpiry(),
       },
     });
 
     // Set refresh token as HTTP-only cookie
-    res.cookie("refreshToken", refreshToken, getCookieOptions(rememberMe));
+    res.cookie("refreshToken", refreshToken, COOKIE_OPTIONS);
 
     res.json({
       user: {
@@ -236,7 +236,7 @@ router.post("/refresh", refreshRateLimiter, async (req: Request, res: Response) 
         },
       }),
     ]);
-    res.cookie("refreshToken", newRefreshToken, getCookieOptions(false));
+    res.cookie("refreshToken", newRefreshToken, COOKIE_OPTIONS);
 
     // Generate new access token
     const accessToken = generateAccessToken(decoded.userId);

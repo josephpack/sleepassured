@@ -5,8 +5,7 @@ const JWT_REFRESH_SECRET =
   process.env.JWT_REFRESH_SECRET || "dev-jwt-refresh-secret";
 
 const ACCESS_TOKEN_EXPIRY = "15m";
-const REFRESH_TOKEN_EXPIRY_DEFAULT = "90d";
-const REFRESH_TOKEN_EXPIRY_REMEMBER = "90d";
+const REFRESH_TOKEN_EXPIRY = "90d";
 
 export interface TokenPayload {
   userId: string;
@@ -23,16 +22,9 @@ export function generateAccessToken(userId: string): string {
   });
 }
 
-export function generateRefreshToken(
-  userId: string,
-  rememberMe: boolean = false
-): string {
-  const expiresIn = rememberMe
-    ? REFRESH_TOKEN_EXPIRY_REMEMBER
-    : REFRESH_TOKEN_EXPIRY_DEFAULT;
-
+export function generateRefreshToken(userId: string): string {
   return jwt.sign({ userId }, JWT_REFRESH_SECRET, {
-    expiresIn,
+    expiresIn: REFRESH_TOKEN_EXPIRY,
   });
 }
 
@@ -44,7 +36,6 @@ export function verifyRefreshToken(token: string): DecodedToken {
   return jwt.verify(token, JWT_REFRESH_SECRET) as DecodedToken;
 }
 
-export function getRefreshTokenExpiry(rememberMe: boolean = false): Date {
-  const days = 90;
-  return new Date(Date.now() + days * 24 * 60 * 60 * 1000);
+export function getRefreshTokenExpiry(): Date {
+  return new Date(Date.now() + 90 * 24 * 60 * 60 * 1000);
 }
