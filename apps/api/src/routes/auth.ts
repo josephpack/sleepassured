@@ -193,8 +193,8 @@ router.post("/logout", async (req: Request, res: Response) => {
 // POST /api/auth/refresh
 router.post("/refresh", refreshRateLimiter, async (req: Request, res: Response) => {
   try {
-    // Accept refresh token from cookie (browser) or request body (PWA/mobile fallback)
-    const refreshToken = req.cookies?.refreshToken || req.body?.refreshToken;
+    // Prefer token from request body (localStorage — reliable on iOS PWA) over cookie (may be stale)
+    const refreshToken = req.body?.refreshToken || req.cookies?.refreshToken;
 
     if (!refreshToken) {
       res.status(401).json({ error: "No refresh token provided" });
