@@ -33,7 +33,7 @@ const getCookieOptions = (rememberMe: boolean) => ({
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
   sameSite: "lax" as const,
-  maxAge: rememberMe ? 90 * 24 * 60 * 60 * 1000 : 30 * 24 * 60 * 60 * 1000,
+  maxAge: 90 * 24 * 60 * 60 * 1000,
   path: "/",
 });
 

@@ -5,7 +5,7 @@ const JWT_REFRESH_SECRET =
   process.env.JWT_REFRESH_SECRET || "dev-jwt-refresh-secret";
 
 const ACCESS_TOKEN_EXPIRY = "15m";
-const REFRESH_TOKEN_EXPIRY_DEFAULT = "30d";
+const REFRESH_TOKEN_EXPIRY_DEFAULT = "90d";
 const REFRESH_TOKEN_EXPIRY_REMEMBER = "90d";
 
 export interface TokenPayload {
@@ -45,6 +45,6 @@ export function verifyRefreshToken(token: string): DecodedToken {
 }
 
 export function getRefreshTokenExpiry(rememberMe: boolean = false): Date {
-  const days = rememberMe ? 90 : 30;
+  const days = 90;
   return new Date(Date.now() + days * 24 * 60 * 60 * 1000);
 }
