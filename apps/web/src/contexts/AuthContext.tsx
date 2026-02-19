@@ -15,6 +15,7 @@ import {
   logout as apiLogout,
   refreshAccessToken,
   getCurrentUser,
+  clearStoredRefreshToken,
   LoginRequest,
   SignupRequest,
 } from "@/features/auth/api/auth";
@@ -43,6 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const handleUnauthorized = useCallback(() => {
     setUser(null);
     setAccessToken(null);
+    clearStoredRefreshToken();
     navigate("/login");
   }, [navigate]);
 
@@ -60,6 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch {
       setUser(null);
       setAccessToken(null);
+      clearStoredRefreshToken();
       return false;
     }
   }, []);
@@ -127,6 +130,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
       setUser(null);
       setAccessToken(null);
+      clearStoredRefreshToken();
       navigate("/login");
     }
   }, [navigate]);

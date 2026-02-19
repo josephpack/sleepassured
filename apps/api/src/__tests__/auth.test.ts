@@ -25,6 +25,7 @@ describe("Auth API", () => {
       });
       expect(response.body.user.id).toBeDefined();
       expect(response.body.accessToken).toBeDefined();
+      expect(response.body.refreshToken).toBeDefined();
 
       const cookies = response.headers["set-cookie"] as string[] | undefined;
       expect(cookies).toBeDefined();
@@ -180,6 +181,25 @@ describe("Auth API", () => {
         .expect(200);
 
       expect(response.body.accessToken).toBeDefined();
+    });
+
+    it("returns new access token with refresh token in request body", async () => {
+      // First signup to get tokens
+      const signupResponse = await request(app)
+        .post("/api/auth/signup")
+        .send(testUser);
+
+      const { refreshToken } = signupResponse.body;
+      expect(refreshToken).toBeDefined();
+
+      // Request new access token via body (PWA fallback)
+      const response = await request(app)
+        .post("/api/auth/refresh")
+        .send({ refreshToken })
+        .expect(200);
+
+      expect(response.body.accessToken).toBeDefined();
+      expect(response.body.refreshToken).toBeDefined();
     });
 
     it("fails without refresh token", async () => {

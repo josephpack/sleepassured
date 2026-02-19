@@ -7,7 +7,6 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import { PasswordInput } from "./PasswordInput";
 import { loginSchema, LoginFormData } from "../schemas/auth";
 import { useAuth } from "@/contexts/AuthContext";
@@ -21,19 +20,14 @@ export function LoginForm() {
   const {
     register,
     handleSubmit,
-    setValue,
-    watch,
     formState: { errors },
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
       email: "",
       password: "",
-      rememberMe: false,
     },
   });
-
-  const rememberMe = watch("rememberMe");
 
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
@@ -78,17 +72,6 @@ export function LoginForm() {
         {errors.password && (
           <p className="text-sm text-destructive">{errors.password.message}</p>
         )}
-      </div>
-
-      <div className="flex items-center space-x-2">
-        <Checkbox
-          id="rememberMe"
-          checked={rememberMe}
-          onCheckedChange={(checked) => setValue("rememberMe", checked === true)}
-        />
-        <Label htmlFor="rememberMe" className="text-sm font-normal cursor-pointer">
-          Remember me for 30 days
-        </Label>
       </div>
 
       <Button type="submit" className="w-full" disabled={isLoading}>

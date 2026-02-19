@@ -97,6 +97,7 @@ router.post("/signup", authRateLimiter, async (req: Request, res: Response) => {
     res.status(201).json({
       user,
       accessToken,
+      refreshToken,
     });
   } catch (error) {
     logger.error({ err: error }, "Signup error");
@@ -160,6 +161,7 @@ router.post("/login", authRateLimiter, async (req: Request, res: Response) => {
         isAdmin: user.isAdmin,
       },
       accessToken,
+      refreshToken,
     });
   } catch (error) {
     logger.error({ err: error }, "Login error");
@@ -191,7 +193,8 @@ router.post("/logout", async (req: Request, res: Response) => {
 // POST /api/auth/refresh
 router.post("/refresh", refreshRateLimiter, async (req: Request, res: Response) => {
   try {
-    const refreshToken = req.cookies?.refreshToken;
+    // Accept refresh token from cookie (browser) or request body (PWA/mobile fallback)
+    const refreshToken = req.cookies?.refreshToken || req.body?.refreshToken;
 
     if (!refreshToken) {
       res.status(401).json({ error: "No refresh token provided" });
@@ -241,7 +244,7 @@ router.post("/refresh", refreshRateLimiter, async (req: Request, res: Response) 
     // Generate new access token
     const accessToken = generateAccessToken(decoded.userId);
 
-    res.json({ accessToken });
+    res.json({ accessToken, refreshToken: newRefreshToken });
   } catch (error) {
     logger.error({ err: error }, "Refresh error");
     res.status(500).json({ error: "Internal server error" });

@@ -30,12 +30,10 @@ export function SignupForm() {
       name: "",
       email: "",
       password: "",
-      rememberMe: false,
       acceptTerms: false,
     },
   });
 
-  const rememberMe = watch("rememberMe");
   const acceptTerms = watch("acceptTerms");
 
   const onSubmit = async (data: SignupFormData) => {
@@ -45,7 +43,6 @@ export function SignupForm() {
         name: data.name,
         email: data.email,
         password: data.password,
-        rememberMe: data.rememberMe,
       });
       navigate("/");
     } catch (error) {
@@ -101,17 +98,6 @@ export function SignupForm() {
         {errors.password && (
           <p className="text-sm text-destructive">{errors.password.message}</p>
         )}
-      </div>
-
-      <div className="flex items-center space-x-2">
-        <Checkbox
-          id="rememberMe"
-          checked={rememberMe}
-          onCheckedChange={(checked) => setValue("rememberMe", checked === true)}
-        />
-        <Label htmlFor="rememberMe" className="text-sm font-normal cursor-pointer">
-          Remember me for 30 days
-        </Label>
       </div>
 
       <div className="flex items-start space-x-2">
