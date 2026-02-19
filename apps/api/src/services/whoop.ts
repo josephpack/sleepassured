@@ -178,9 +178,15 @@ export async function exchangeCodeForTokens(
     expires_in?: number;
     token_type?: string;
   };
-  logger.debug({ keys: Object.keys(data) }, "WHOOP token response");
+  logger.info(
+    { keys: Object.keys(data), hasRefreshToken: !!data.refresh_token },
+    "WHOOP token response"
+  );
 
-  // WHOOP may not always return refresh_token - use access_token as fallback
+  if (!data.refresh_token) {
+    logger.warn("WHOOP token exchange did not return a refresh_token");
+  }
+
   return {
     access_token: data.access_token,
     refresh_token: data.refresh_token || data.access_token,
@@ -203,6 +209,7 @@ export async function refreshAccessToken(
       refresh_token: refreshToken,
       client_id: WHOOP_CLIENT_ID,
       client_secret: WHOOP_CLIENT_SECRET,
+      redirect_uri: WHOOP_REDIRECT_URI,
     }),
   });
 
