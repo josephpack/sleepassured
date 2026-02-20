@@ -22,8 +22,8 @@ import {
   Lock,
   BarChart3,
   CalendarClock,
-  BookOpen,
   AlertTriangle,
+  Wifi,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -33,7 +33,9 @@ import {
 } from "@/features/diary/api";
 import { EfficiencyChart } from "@/components/dashboard/EfficiencyChart";
 import { RecoveryCard } from "@/components/dashboard/RecoveryCard";
+import { SleepHistory } from "@/components/dashboard/SleepHistory";
 import { useWhoopAutoSync } from "@/hooks/useWhoopAutoSync";
+import { getWhoopStatus } from "@/features/whoop/api/whoop";
 
 // Format time from HH:MM to display format
 function formatTimeDisplay(timeStr: string): string {
@@ -71,12 +73,17 @@ export function DashboardPage() {
   const [scheduleData, setScheduleData] = useState<CurrentScheduleResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isInitializing, setIsInitializing] = useState(false);
+  const [whoopConnected, setWhoopConnected] = useState<boolean | null>(null);
 
   useEffect(() => {
     async function loadData() {
       try {
-        const data = await getCurrentSchedule();
-        setScheduleData(data);
+        const [schedData, whoopStatus] = await Promise.all([
+          getCurrentSchedule(),
+          getWhoopStatus(),
+        ]);
+        setScheduleData(schedData);
+        setWhoopConnected(whoopStatus.connected);
       } catch (error) {
         console.error("Failed to load schedule:", error);
       } finally {
@@ -218,27 +225,30 @@ export function DashboardPage() {
                   </Card>
                 )}
 
-                {/* First-time user — log first night */}
+                {/* First-time user — connect WHOOP or waiting for data */}
                 {isFirstTime && (
                   <Card className="mb-6">
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
-                        <BookOpen className="h-5 w-5 text-primary" />
-                        Get Started
+                        <Wifi className="h-5 w-5 text-primary" />
+                        {whoopConnected ? "Waiting for Sleep Data" : "Connect WHOOP to Get Started"}
                       </CardTitle>
                       <CardDescription>
-                        We need 7 nights of sleep data to understand your patterns and
-                        build your personalised schedule.
+                        {whoopConnected
+                          ? "We're automatically collecting your sleep data from WHOOP. We need 7 nights to understand your patterns and build your personalised schedule."
+                          : "Connect your WHOOP to start tracking sleep automatically. We need 7 nights of data to build your personalised schedule."}
                       </CardDescription>
                     </CardHeader>
-                    <CardContent>
-                      <Button asChild size="lg">
-                        <Link to="/diary">
-                          Log Tonight's Sleep
-                          <ChevronRight className="h-4 w-4 ml-2" />
-                        </Link>
-                      </Button>
-                    </CardContent>
+                    {!whoopConnected && (
+                      <CardContent>
+                        <Button asChild size="lg">
+                          <Link to="/settings">
+                            Connect WHOOP
+                            <ChevronRight className="h-4 w-4 ml-2" />
+                          </Link>
+                        </Button>
+                      </CardContent>
+                    )}
                   </Card>
                 )}
 
@@ -251,8 +261,8 @@ export function DashboardPage() {
                         Building Your Baseline
                       </CardTitle>
                       <CardDescription>
-                        We need 7 nights of sleep data to understand your patterns and
-                        build your personalised schedule.
+                        We're automatically collecting your sleep data. We need 7 nights
+                        to understand your patterns and build your personalised schedule.
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -279,17 +289,10 @@ export function DashboardPage() {
                       </p>
 
                       {/* Initialize button when baseline is complete */}
-                      {baselineStatus.isComplete ? (
+                      {baselineStatus.isComplete && (
                         <Button onClick={handleInitializeSchedule} disabled={isInitializing}>
                           {isInitializing && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
                           Get My Sleep Schedule
-                        </Button>
-                      ) : (
-                        <Button asChild>
-                          <Link to="/diary">
-                            Log Tonight's Sleep
-                            <ChevronRight className="h-4 w-4 ml-2" />
-                          </Link>
                         </Button>
                       )}
                     </CardContent>
@@ -406,17 +409,10 @@ export function DashboardPage() {
                   </CardContent>
                 </Card>
 
-                {/* Post-baseline: Log sleep quick-link */}
-                {hasSchedule && (
-                  <div className="mb-6">
-                    <Button asChild variant="outline" className="w-full" size="lg">
-                      <Link to="/diary">
-                        <BookOpen className="h-4 w-4 mr-2" />
-                        Log Tonight's Sleep
-                      </Link>
-                    </Button>
-                  </div>
-                )}
+                {/* Sleep History (baseline and post-baseline) */}
+                <div className="mb-6">
+                  <SleepHistory />
+                </div>
 
                 {/* Efficiency Chart (post-baseline) */}
                 {hasSchedule && (

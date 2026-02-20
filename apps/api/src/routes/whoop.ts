@@ -458,6 +458,58 @@ router.post("/sync", authenticate, async (req: Request, res: Response) => {
   }
 });
 
+// GET /api/whoop/sleep-history
+// Returns the last N days of WHOOP sleep records (from the local DB, no WHOOP API calls)
+router.get("/sleep-history", authenticate, async (req: Request, res: Response) => {
+  try {
+    const userId = req.user!.userId;
+    const days = Math.min(Math.max(parseInt(req.query.days as string) || 7, 1), 30);
+
+    const since = new Date();
+    since.setDate(since.getDate() - days);
+
+    const records = await prisma.whoopSleepRecord.findMany({
+      where: {
+        userId,
+        endTime: { gte: since },
+      },
+      orderBy: { endTime: "desc" },
+      select: {
+        startTime: true,
+        endTime: true,
+        totalSleepDurationMs: true,
+        sleepEfficiency: true,
+        remSleepMs: true,
+        lightSleepMs: true,
+        deepSleepMs: true,
+        awakeDurationMs: true,
+        recoveryScore: true,
+      },
+    });
+
+    const mapped = records.map((r) => {
+      const msToMins = (ms: bigint) => Math.round(Number(ms) / 60000);
+      return {
+        date: r.endTime.toISOString().slice(0, 10),
+        bedtime: r.startTime.toISOString(),
+        wakeTime: r.endTime.toISOString(),
+        totalSleepMins: msToMins(r.totalSleepDurationMs),
+        sleepEfficiency: Number(r.sleepEfficiency),
+        remMins: msToMins(r.remSleepMs),
+        lightMins: msToMins(r.lightSleepMs),
+        deepMins: msToMins(r.deepSleepMs),
+        awakeMins: msToMins(r.awakeDurationMs),
+        recoveryScore: r.recoveryScore ?? null,
+      };
+    });
+
+    res.json({ records: mapped });
+  } catch (error) {
+    logger.error({ err: error }, "Error fetching sleep history");
+    res.status(500).json({ error: "Failed to fetch sleep history" });
+  }
+});
+
 // GET /api/whoop/latest-recovery
 // Get the most recent recovery score
 router.get("/latest-recovery", authenticate, async (req: Request, res: Response) => {

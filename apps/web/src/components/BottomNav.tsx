@@ -2,7 +2,6 @@ import { Link, useLocation } from "react-router-dom";
 
 const tabs = [
   { to: "/", label: "Home" },
-  { to: "/diary", label: "Diary" },
   { to: "/chat", label: "AI Coach" },
 ] as const;
 

@@ -6,7 +6,6 @@ import { SettingsPage } from "@/pages/SettingsPage";
 import { AdminPage } from "@/pages/AdminPage";
 import { AdminUserPage } from "@/pages/AdminUserPage";
 import { OnboardingPage } from "@/pages/OnboardingPage";
-import { DiaryPage } from "@/features/diary";
 import { ChatPage } from "@/features/chat";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { PublicRoute } from "@/components/PublicRoute";
@@ -43,10 +42,6 @@ export const router = createBrowserRouter([
               {
                 path: "/",
                 element: <DashboardPage />,
-              },
-              {
-                path: "/diary",
-                element: <DiaryPage />,
               },
               {
                 path: "/chat",

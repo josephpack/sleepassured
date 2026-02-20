@@ -49,3 +49,24 @@ export interface WhoopRecoveryResponse {
 export async function getLatestRecovery(): Promise<WhoopRecoveryResponse> {
   return api<WhoopRecoveryResponse>("/whoop/latest-recovery");
 }
+
+export interface WhoopSleepHistoryRecord {
+  date: string;
+  bedtime: string;
+  wakeTime: string;
+  totalSleepMins: number;
+  sleepEfficiency: number;
+  remMins: number;
+  lightMins: number;
+  deepMins: number;
+  awakeMins: number;
+  recoveryScore: number | null;
+}
+
+export interface WhoopSleepHistoryResponse {
+  records: WhoopSleepHistoryRecord[];
+}
+
+export async function getSleepHistory(days = 7): Promise<WhoopSleepHistoryResponse> {
+  return api<WhoopSleepHistoryResponse>(`/whoop/sleep-history?days=${days}`);
+}

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,7 @@ import {
   updateUserProfile,
 } from "@/features/onboarding/api/onboarding";
 import { WhoopConnect } from "@/components/WhoopConnect";
+import { getWhoopStatus } from "@/features/whoop/api/whoop";
 import { ChevronLeft, ChevronRight, Check, Loader2 } from "lucide-react";
 
 // ISI Questions — each with context-appropriate labels (0–4 scoring preserved)
@@ -128,6 +129,29 @@ export function OnboardingPage() {
   const [isiScore, setIsiScore] = useState<number | null>(null);
   const [targetWakeTime, setTargetWakeTime] = useState("07:00");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [whoopConnected, setWhoopConnected] = useState(false);
+
+  // Poll WHOOP connection status when on the whoop step
+  useEffect(() => {
+    if (currentStep !== "whoop") return;
+    let cancelled = false;
+
+    async function checkStatus() {
+      try {
+        const status = await getWhoopStatus();
+        if (!cancelled) setWhoopConnected(status.connected);
+      } catch {
+        // ignore
+      }
+    }
+
+    checkStatus();
+    const interval = setInterval(checkStatus, 3000);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [currentStep]);
 
   const handleIsiResponse = (questionIndex: number, value: number) => {
     const newResponses = [...isiResponses];
@@ -270,7 +294,7 @@ export function OnboardingPage() {
                   <li className="flex items-start gap-2">
                     <Check className="h-4 w-4 mt-0.5 text-primary" />
                     <span>
-                      Optional WHOOP integration for objective sleep tracking
+                      Automatic sleep tracking via your WHOOP
                     </span>
                   </li>
                   <li className="flex items-start gap-2">
@@ -281,7 +305,7 @@ export function OnboardingPage() {
                   </li>
                   <li className="flex items-start gap-2">
                     <Check className="h-4 w-4 mt-0.5 text-primary" />
-                    <span>Daily diary and weekly progress tracking</span>
+                    <span>Weekly progress tracking and AI coaching</span>
                   </li>
                 </ul>
               </div>
@@ -385,9 +409,9 @@ export function OnboardingPage() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Connect Your WHOOP (Optional)</CardTitle>
+                <CardTitle>Connect Your WHOOP</CardTitle>
                 <CardDescription>
-                  Sync your sleep data automatically for better insights
+                  WHOOP is required to automatically track your sleep data
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -398,11 +422,12 @@ export function OnboardingPage() {
                   <ChevronLeft className="h-4 w-4 mr-2" />
                   Back
                 </Button>
-                <Button onClick={() => setCurrentStep("waketime")}>
-                  {/* Show different text based on connection status */}
-                  Continue
-                  <ChevronRight className="h-4 w-4 ml-2" />
-                </Button>
+                {whoopConnected && (
+                  <Button onClick={() => setCurrentStep("waketime")}>
+                    Continue
+                    <ChevronRight className="h-4 w-4 ml-2" />
+                  </Button>
+                )}
               </CardFooter>
             </Card>
           </div>
