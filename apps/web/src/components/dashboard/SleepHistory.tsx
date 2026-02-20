@@ -155,18 +155,17 @@ function WeeklyTrend({ records }: { records: WhoopSleepHistoryRecord[] }) {
         <CardTitle className="text-lg">7-Day Trend</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="flex justify-between gap-1">
+        <div className="flex justify-between">
           {week.map((r) => (
-            <div key={r.date} className="flex-1 flex flex-col items-center gap-1.5">
+            <div
+              key={r.date}
+              className="flex flex-col items-center gap-1"
+              title={`${r.date}: ${formatDuration(r.totalSleepMins)}, ${r.sleepEfficiency.toFixed(0)}% efficiency`}
+            >
               <span className="text-xs text-muted-foreground">{dayLabel(r.date)}</span>
-              <div className="relative w-full flex justify-center">
-                <div
-                  className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-medium text-white ${efficiencyColor(r.sleepEfficiency)}`}
-                  title={`${r.date}: ${formatDuration(r.totalSleepMins)}, ${r.sleepEfficiency.toFixed(0)}% eff`}
-                >
-                  {formatDuration(r.totalSleepMins).replace(/\s/g, "")}
-                </div>
-              </div>
+              <div className={`h-3 w-3 rounded-full ${efficiencyColor(r.sleepEfficiency)}`} />
+              <span className="text-xs font-medium">{formatDuration(r.totalSleepMins)}</span>
+              <span className="text-[10px] text-muted-foreground">{r.sleepEfficiency.toFixed(0)}%</span>
             </div>
           ))}
         </div>
