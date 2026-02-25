@@ -21,7 +21,7 @@ const ENCRYPTION_KEY = crypto
 const ENCRYPTION_ALGORITHM = "aes-256-gcm";
 
 // OAuth scopes for WHOOP (must match what's enabled in WHOOP developer portal)
-const WHOOP_SCOPES = ["read:sleep", "read:recovery", "read:profile", "read:cycles"];
+const WHOOP_SCOPES = ["read:sleep", "read:recovery", "read:profile", "read:cycles", "offline"];
 
 // Types
 export interface WhoopTokenResponse {
@@ -219,7 +219,25 @@ export async function refreshAccessToken(
     throw new Error(`Failed to refresh token: ${error}`);
   }
 
-  return response.json() as Promise<WhoopTokenResponse>;
+  const data = await response.json() as {
+    access_token: string;
+    refresh_token?: string;
+    expires_in?: number;
+    token_type?: string;
+  };
+
+  logger.info(
+    { hasRefreshToken: !!data.refresh_token },
+    "WHOOP token refresh response"
+  );
+
+  return {
+    access_token: data.access_token,
+    // WHOOP rotates refresh tokens — preserve the old one if the response omits it
+    refresh_token: data.refresh_token || refreshToken,
+    expires_in: data.expires_in || 3600,
+    token_type: data.token_type || "Bearer",
+  };
 }
 
 // Fetch user profile

@@ -56,6 +56,7 @@ async function syncUserData(userId: string): Promise<SyncResult> {
           },
         });
       } catch (error) {
+        logger.error({ err: error, userId }, "WHOOP token refresh failed in background sync");
         await handleTokenRefreshFailure(userId);
         return {
           userId,
@@ -169,7 +170,7 @@ export async function runWhoopSyncJob(): Promise<{
   failed: number;
   results: SyncResult[];
 }> {
-  logger.info("Starting daily WHOOP sync job");
+  logger.info("Starting WHOOP sync job");
 
   // Get all users with active WHOOP connections (skip NEEDS_REAUTH)
   const connections = await prisma.whoopConnection.findMany({
@@ -209,33 +210,33 @@ export async function runWhoopSyncJob(): Promise<{
   };
 }
 
-// Schedule the job to run daily at 9 AM
+// Schedule the job to run every 4 hours (00:00, 04:00, 08:00, 12:00, 16:00, 20:00)
+const SYNC_INTERVAL_HOURS = 4;
 let syncInterval: NodeJS.Timeout | null = null;
 
 export function startWhoopSyncScheduler(): void {
-  // Calculate milliseconds until next 9 AM
   const now = new Date();
-  const next9AM = new Date(now);
-  next9AM.setHours(9, 0, 0, 0);
+  const nextRun = new Date(now);
 
-  if (now >= next9AM) {
-    // If it's past 9 AM today, schedule for tomorrow
-    next9AM.setDate(next9AM.getDate() + 1);
-  }
+  // Align to the next even 4-hour boundary
+  const currentHour = now.getHours();
+  const nextBoundary = Math.ceil((currentHour + 1) / SYNC_INTERVAL_HOURS) * SYNC_INTERVAL_HOURS;
+  nextRun.setHours(nextBoundary, 0, 0, 0);
 
-  const msUntilNext9AM = next9AM.getTime() - now.getTime();
+  // If we've gone past midnight into the next day, the Date handles it automatically
+  const msUntilNextRun = nextRun.getTime() - now.getTime();
 
-  logger.info({ firstRun: next9AM.toISOString() }, "WHOOP sync scheduler started");
+  logger.info({ firstRun: nextRun.toISOString() }, "WHOOP sync scheduler started (every 4 hours)");
 
-  // Run at the first 9 AM
+  // Run at the next 4-hour boundary
   setTimeout(async () => {
     await runWhoopSyncJob();
 
-    // Then run every 24 hours
+    // Then run every 4 hours
     syncInterval = setInterval(async () => {
       await runWhoopSyncJob();
-    }, 24 * 60 * 60 * 1000);
-  }, msUntilNext9AM);
+    }, SYNC_INTERVAL_HOURS * 60 * 60 * 1000);
+  }, msUntilNextRun);
 }
 
 export function stopWhoopSyncScheduler(): void {

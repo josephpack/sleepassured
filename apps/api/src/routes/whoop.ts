@@ -279,7 +279,8 @@ router.get("/sync-now", authenticate, async (req: Request, res: Response) => {
             tokenExpiresAt: getTokenExpiresAt(newTokens.expires_in),
           },
         });
-      } catch {
+      } catch (error) {
+        logger.error({ err: error, userId }, "WHOOP token refresh failed in sync-now");
         await handleTokenRefreshFailure(userId);
         res.json({ message: "WHOOP connection needs re-authorisation", needsReauth: true });
         return;
@@ -349,7 +350,8 @@ router.post("/sync", authenticate, async (req: Request, res: Response) => {
             tokenExpiresAt: getTokenExpiresAt(newTokens.expires_in),
           },
         });
-      } catch {
+      } catch (error) {
+        logger.error({ err: error, userId }, "WHOOP token refresh failed in sync");
         await handleTokenRefreshFailure(userId);
         res.json({ message: "WHOOP connection needs re-authorisation", needsReauth: true });
         return;
