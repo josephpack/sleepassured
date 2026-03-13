@@ -27,6 +27,7 @@ import {
   BookOpen,
   MessageCircle,
   Circle,
+  CheckCircle2,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -79,6 +80,48 @@ export function DashboardPage() {
   const [isInitializing, setIsInitializing] = useState(false);
   const [whoopConnected, setWhoopConnected] = useState<boolean | null>(null);
   const [programme, setProgramme] = useState<ProgrammeResponse | null>(null);
+  const [completedActions, setCompletedActions] = useState<Set<string>>(new Set());
+
+  // Load completed actions from localStorage when programme loads
+  useEffect(() => {
+    if (!programme) return;
+    try {
+      const stored = localStorage.getItem("sleepassured_actions_completed");
+      if (stored) {
+        const parsed: Record<string, boolean> = JSON.parse(stored);
+        const currentIds = new Set(programme.dailyActions.map((a) => a.id));
+        const filtered = new Set(
+          Object.keys(parsed).filter((id) => currentIds.has(id))
+        );
+        setCompletedActions(filtered);
+        // Clean stale entries
+        const cleaned: Record<string, boolean> = {};
+        for (const id of filtered) cleaned[id] = true;
+        localStorage.setItem("sleepassured_actions_completed", JSON.stringify(cleaned));
+      }
+    } catch {
+      // Ignore localStorage errors
+    }
+  }, [programme]);
+
+  const toggleAction = (actionId: string) => {
+    setCompletedActions((prev) => {
+      const next = new Set(prev);
+      if (next.has(actionId)) {
+        next.delete(actionId);
+      } else {
+        next.add(actionId);
+      }
+      try {
+        const obj: Record<string, boolean> = {};
+        for (const id of next) obj[id] = true;
+        localStorage.setItem("sleepassured_actions_completed", JSON.stringify(obj));
+      } catch {
+        // Ignore localStorage errors
+      }
+      return next;
+    });
+  };
 
   useEffect(() => {
     async function loadData() {
@@ -433,16 +476,38 @@ export function DashboardPage() {
 
                       {/* This week's actions */}
                       <div>
-                        <h4 className="text-sm font-medium mb-2">This week's actions</h4>
+                        <h4 className="text-sm font-medium mb-1">This week's actions</h4>
+                        <p className="text-xs text-muted-foreground mb-2">
+                          {completedActions.size} of {programme.dailyActions.length} completed
+                        </p>
                         <ul className="space-y-2">
-                          {programme.dailyActions.map((action) => (
-                            <li key={action.id} className="flex items-start gap-2">
-                              <Circle className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
-                              <span className="text-sm text-muted-foreground leading-relaxed">
-                                {action.text}
-                              </span>
-                            </li>
-                          ))}
+                          {programme.dailyActions.map((action) => {
+                            const done = completedActions.has(action.id);
+                            return (
+                              <li key={action.id}>
+                                <button
+                                  type="button"
+                                  onClick={() => toggleAction(action.id)}
+                                  className="flex items-start gap-2 w-full text-left"
+                                >
+                                  {done ? (
+                                    <CheckCircle2 className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                                  ) : (
+                                    <Circle className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
+                                  )}
+                                  <span
+                                    className={`text-sm leading-relaxed ${
+                                      done
+                                        ? "line-through text-muted-foreground/60"
+                                        : "text-muted-foreground"
+                                    }`}
+                                  >
+                                    {action.text}
+                                  </span>
+                                </button>
+                              </li>
+                            );
+                          })}
                         </ul>
                       </div>
 
