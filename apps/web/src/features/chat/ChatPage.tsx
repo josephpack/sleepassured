@@ -104,7 +104,7 @@ export function ChatPage() {
       {/* Header */}
       <div className="flex items-center gap-2 px-4 py-3 border-b">
         <Button variant="ghost" size="icon" asChild className="shrink-0 h-9 w-9">
-          <Link to="/">
+          <Link to="/dashboard">
             <ArrowLeft className="h-4 w-4" />
           </Link>
         </Button>

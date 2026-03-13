@@ -44,7 +44,7 @@ export function SignupForm() {
         email: data.email,
         password: data.password,
       });
-      navigate("/");
+      navigate("/dashboard");
     } catch (error) {
       if (error instanceof ApiError) {
         toast.error(error.message);

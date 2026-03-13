@@ -66,7 +66,7 @@ export function AdminPage() {
         <div className="mx-auto max-w-4xl">
           <div className="mb-6">
             <Button variant="ghost" size="sm" asChild>
-              <Link to="/"><ArrowLeft className="h-4 w-4" /> Back to Dashboard</Link>
+              <Link to="/dashboard"><ArrowLeft className="h-4 w-4" /> Back to Dashboard</Link>
             </Button>
           </div>
           <p className="text-destructive">{error}</p>
@@ -80,7 +80,7 @@ export function AdminPage() {
       <div className="mx-auto max-w-4xl">
         <div className="mb-6">
           <Button variant="ghost" size="sm" asChild>
-            <Link to="/"><ArrowLeft className="h-4 w-4" /> Back to Dashboard</Link>
+            <Link to="/dashboard"><ArrowLeft className="h-4 w-4" /> Back to Dashboard</Link>
           </Button>
         </div>
 

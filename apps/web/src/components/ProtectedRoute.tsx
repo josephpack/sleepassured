@@ -25,7 +25,7 @@ export function ProtectedRoute() {
 
   // Redirect away from onboarding if already completed
   if (user?.onboardingCompleted && location.pathname === "/onboarding") {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   return <Outlet />;

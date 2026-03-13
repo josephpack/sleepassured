@@ -186,7 +186,7 @@ export function OnboardingPage() {
       });
       await refreshUser();
       toast.success("Onboarding complete! Welcome to SleepAssured.");
-      navigate("/");
+      navigate("/dashboard");
     } catch (error) {
       console.error("Failed to complete onboarding:", error);
       toast.error("Failed to save settings. Please try again.");

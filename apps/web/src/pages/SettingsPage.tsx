@@ -12,7 +12,7 @@ export function SettingsPage() {
       <div className="mx-auto max-w-2xl">
         <div className="mb-6">
           <Button variant="ghost" size="sm" asChild>
-            <Link to="/">
+            <Link to="/dashboard">
               <ArrowLeft className="h-4 w-4" />
               Back to Dashboard
             </Link>

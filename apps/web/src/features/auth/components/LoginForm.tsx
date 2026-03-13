@@ -33,7 +33,7 @@ export function LoginForm() {
     setIsLoading(true);
     try {
       await login(data);
-      navigate("/");
+      navigate("/dashboard");
     } catch (error) {
       if (error instanceof ApiError) {
         toast.error(error.message);
