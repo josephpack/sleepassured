@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Send, Loader2, ArrowLeft } from "lucide-react";
+import { Send, Loader2, ArrowLeft, BookOpen } from "lucide-react";
 import { Link } from "react-router-dom";
 import {
   sendChatMessage,
@@ -14,7 +14,7 @@ export function ChatPage() {
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [quickReplies, setQuickReplies] = useState<QuickReply[]>([]);
-  const [showQuickReplies, setShowQuickReplies] = useState(true);
+  const [weekContext, setWeekContext] = useState<{ weekNumber?: number; topic?: string } | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -24,6 +24,12 @@ export function ChatPage() {
       try {
         const data = await getQuickReplies();
         setQuickReplies(data.quickReplies);
+        if (data.context.weekNumber && data.context.topic) {
+          setWeekContext({
+            weekNumber: data.context.weekNumber,
+            topic: data.context.topic,
+          });
+        }
       } catch (error) {
         console.error("Failed to load quick replies:", error);
         // Fallback quick reply
@@ -55,9 +61,6 @@ export function ChatPage() {
   const handleSendMessage = async (messageText?: string) => {
     const text = messageText ?? inputValue.trim();
     if (!text || isLoading) return;
-
-    // Hide quick replies after first message
-    setShowQuickReplies(false);
 
     // Add user message
     const userMessage: ChatMessage = { role: "user", content: text };
@@ -105,28 +108,53 @@ export function ChatPage() {
             <ArrowLeft className="h-4 w-4" />
           </Link>
         </Button>
-        <h1 className="text-lg font-semibold">AI Sleep Coach</h1>
+        <div className="flex-1 min-w-0">
+          <h1 className="text-lg font-semibold">AI Sleep Coach</h1>
+          {/* Week context banner */}
+          {weekContext?.weekNumber && weekContext?.topic && (
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <BookOpen className="h-3 w-3 shrink-0" />
+              <span className="truncate">
+                Week {weekContext.weekNumber} of 8: {weekContext.topic}
+              </span>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-2xl mx-auto px-4 py-6">
-          {/* Empty state */}
+          {/* Curriculum-aware empty state */}
           {messages.length === 0 && (
             <div className="flex flex-col items-center justify-center min-h-[50vh] text-center px-4">
               <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
                 <span className="text-2xl">🌙</span>
               </div>
-              <h2 className="text-lg font-medium mb-2">
-                How can I help with your sleep?
-              </h2>
-              <p className="text-sm text-muted-foreground mb-6 max-w-sm">
-                I have access to your sleep data and can help you understand
-                your patterns and progress.
-              </p>
+              {weekContext?.weekNumber && weekContext?.topic ? (
+                <>
+                  <h2 className="text-lg font-medium mb-2">
+                    Week {weekContext.weekNumber}: {weekContext.topic}
+                  </h2>
+                  <p className="text-sm text-muted-foreground mb-6 max-w-sm">
+                    Ask me about this week's focus, your sleep data, or anything
+                    that's on your mind about your programme.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <h2 className="text-lg font-medium mb-2">
+                    How can I help with your sleep?
+                  </h2>
+                  <p className="text-sm text-muted-foreground mb-6 max-w-sm">
+                    I have access to your sleep data and can help you understand
+                    your patterns and progress.
+                  </p>
+                </>
+              )}
 
-              {/* Quick replies */}
-              {showQuickReplies && quickReplies.length > 0 && (
+              {/* Quick replies in empty state */}
+              {quickReplies.length > 0 && (
                 <div className="flex flex-wrap gap-2 justify-center">
                   {quickReplies.map((reply) => (
                     <Button
@@ -182,8 +210,30 @@ export function ChatPage() {
         </div>
       </div>
 
+      {/* Persistent conversation starters (shown above input when messages exist) */}
+      {messages.length > 0 && quickReplies.length > 0 && (
+        <div className="border-t bg-background px-4 pt-2 pb-0">
+          <div className="max-w-2xl mx-auto">
+            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+              {quickReplies.map((reply) => (
+                <Button
+                  key={reply.id}
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleQuickReply(reply)}
+                  disabled={isLoading}
+                  className="rounded-full shrink-0 text-xs"
+                >
+                  {reply.label}
+                </Button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Input Area */}
-      <div className="border-t bg-background p-4 pb-2">
+      <div className={`border-t bg-background p-4 pb-2 ${messages.length > 0 && quickReplies.length > 0 ? "border-t-0 pt-2" : ""}`}>
         <div className="max-w-2xl mx-auto">
           <div className="flex items-end gap-2 bg-muted rounded-2xl px-4 py-2">
             <textarea

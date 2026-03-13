@@ -1,6 +1,7 @@
 import OpenAI from "openai";
 import { prisma } from "@sleepassured/db";
 import logger from "../lib/logger.js";
+import { formatCurriculumForSystemPrompt, getAllIntentGuidances } from "./curriculum.js";
 
 // Lazy-initialize OpenAI client
 let openai: OpenAI | null = null;
@@ -17,8 +18,30 @@ function getOpenAIClient(): OpenAI | null {
   return openai;
 }
 
-// CBT-I system prompt with structured cognitive work for conversational chat
-const CHAT_SYSTEM_PROMPT = `You are a knowledgeable, supportive sleep coach embedded in a CBT-I (Cognitive Behavioural Therapy for Insomnia) app called SleepAssured. You understand the science of sleep and help users not just follow their programme, but understand *why* it works — including the cognitive patterns that maintain insomnia.
+// Build a dynamic, curriculum-aware system prompt from user context
+function buildChatSystemPrompt(context: SleepDataContext): string {
+  const weekNumber = context.weekNumber;
+  const curriculumBlock = formatCurriculumForSystemPrompt(weekNumber);
+
+  // Build intent guidance block
+  const allIntents = getAllIntentGuidances();
+  const intentLines: string[] = [];
+  intentLines.push("═══════════════════════════════════════");
+  intentLines.push("INTENT RESPONSE GUIDANCE");
+  intentLines.push("═══════════════════════════════════════");
+  intentLines.push("");
+  intentLines.push("When the user's message matches one of these common insomnia concerns, use the corresponding guidance to shape your response:");
+  intentLines.push("");
+  for (const [id, guidance] of Object.entries(allIntents)) {
+    intentLines.push(`[${id}]`);
+    intentLines.push(guidance);
+    intentLines.push("");
+  }
+  const intentBlock = intentLines.join("\n");
+
+  return `You are a knowledgeable, supportive sleep coach embedded in a CBT-I (Cognitive Behavioural Therapy for Insomnia) app called SleepAssured. You understand the science of sleep and help users not just follow their programme, but understand *why* it works — including the cognitive patterns that maintain insomnia.
+
+You are a proactive coach — you teach the CBT-I curriculum week by week, surface concerns before the user raises them, and give practical actions, not just theory.
 
 ═══════════════════════════════════════
 CORE SLEEP SCIENCE
@@ -102,6 +125,18 @@ When the data shows progress, reinforce the cognitive shift alongside the behavi
 • "Your nervous system is relearning that bed means sleep — that's not just a number improving, it's a real change in how your brain responds to the bedroom."
 • Help the user notice their own changed relationship with sleep, not just the metrics.
 
+${curriculumBlock}
+
+${intentBlock}
+
+═══════════════════════════════════════
+RESPONSE FORMAT
+═══════════════════════════════════════
+
+Every response MUST include at least one concrete, practical action the user can take today or tonight. Do not give theory-only replies. Structure: acknowledge → brief explanation if needed → specific action.
+
+Examples of good actions: "Tonight, set your alarm for [wake time] and put your phone in another room." / "When you get into bed tonight, try this: if you're not asleep in roughly 20 minutes, get up and sit on the sofa with dim light until you feel sleepy."
+
 ═══════════════════════════════════════
 CRITICAL CONSTRAINTS
 ═══════════════════════════════════════
@@ -112,7 +147,7 @@ CRITICAL CONSTRAINTS
 5. If the user describes symptoms suggesting a different sleep disorder (gasping/choking awake, irresistible urge to move legs, acting out dreams), do NOT diagnose. Acknowledge what they've described and gently suggest mentioning it to their GP.
 6. If the user reports persistent extreme daytime sleepiness affecting driving or safety, gently suggest speaking with their GP.
 7. If the user mentions severe distress, suicidal thoughts, or severe depression, recommend they contact a healthcare professional or crisis service.
-8. Keep responses CONCISE — 2–4 sentences for straightforward questions, up to 5–6 if doing cognitive work or explaining a concept.
+8. Keep responses CONCISE — 2–4 sentences for straightforward questions, up to 6–8 if doing cognitive work, explaining a concept, or teaching this week's curriculum topic.
 9. Stay STRICTLY focused on sleep. If asked about unrelated topics, redirect warmly: "I'm here to help with your sleep. Is there anything about your sleep or schedule I can help with?"
 10. Do NOT address WHOOP metric over-monitoring unless the user raises it directly.
 
@@ -122,10 +157,13 @@ WHAT YOU CAN DO:
 • Do structured cognitive work: surface unhelpful beliefs using Socratic questions, then offer brief psychoeducation as an alternative perspective.
 • Normalise difficulties contextually — different responses for week 1 vs week 6, for SE of 65% vs 85%.
 • Proactively normalise the expected experience in early weeks without waiting for the user to complain.
+• Teach this week's curriculum topic and remind users of their weekly actions.
+• Anticipate common concerns for this week and address them proactively.
 
 TONE: Warm, curious, non-judgmental. When a user expresses distress or a negative belief, your first move is a question, not a correction. You're genuinely interested in what they're experiencing and thinking. Explain the "why" behind advice, not just the "what."
 
 Remember: The user's sleep data is provided below. Use it to make cognitive interventions feel personalised — reference their actual week number, SE, and trends. Never ask them questions about data you already have.`;
+}
 
 export interface SleepDataContext {
   userName: string | null;
@@ -436,11 +474,12 @@ export async function sendChatMessage(
   }
 
   try {
-    // Build messages array
+    // Build messages array with dynamic, curriculum-aware system prompt
+    const systemPrompt = buildChatSystemPrompt(context);
     const messages: Array<{ role: "system" | "user" | "assistant"; content: string }> = [
       {
         role: "system",
-        content: `${CHAT_SYSTEM_PROMPT}\n\n---\n\nUSER'S SLEEP DATA:\n${contextString}`,
+        content: `${systemPrompt}\n\n---\n\nUSER'S SLEEP DATA:\n${contextString}`,
       },
     ];
 
@@ -462,7 +501,7 @@ export async function sendChatMessage(
     const completion = await client.chat.completions.create({
       model: "gpt-4o-mini",
       messages,
-      max_tokens: 250,
+      max_tokens: 400,
       temperature: 0.7,
     });
 

@@ -21,6 +21,8 @@ export interface QuickRepliesResponse {
   context: {
     lastNightEfficiency: number | null;
     isLowEfficiency: boolean;
+    weekNumber?: number;
+    topic?: string;
   };
 }
 

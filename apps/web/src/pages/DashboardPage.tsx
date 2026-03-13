@@ -24,6 +24,9 @@ import {
   CalendarClock,
   AlertTriangle,
   Wifi,
+  BookOpen,
+  MessageCircle,
+  Circle,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -36,6 +39,7 @@ import { RecoveryCard } from "@/components/dashboard/RecoveryCard";
 import { SleepHistory } from "@/components/dashboard/SleepHistory";
 import { useWhoopAutoSync } from "@/hooks/useWhoopAutoSync";
 import { getWhoopStatus } from "@/features/whoop/api/whoop";
+import { getCurrentProgramme, ProgrammeResponse } from "@/features/programme/api";
 
 // Format time from HH:MM to display format
 function formatTimeDisplay(timeStr: string): string {
@@ -74,6 +78,7 @@ export function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isInitializing, setIsInitializing] = useState(false);
   const [whoopConnected, setWhoopConnected] = useState<boolean | null>(null);
+  const [programme, setProgramme] = useState<ProgrammeResponse | null>(null);
 
   useEffect(() => {
     async function loadData() {
@@ -84,6 +89,16 @@ export function DashboardPage() {
         ]);
         setScheduleData(schedData);
         setWhoopConnected(whoopStatus.connected);
+
+        // Load programme data if schedule exists
+        if (schedData.hasSchedule) {
+          try {
+            const prog = await getCurrentProgramme();
+            setProgramme(prog);
+          } catch (error) {
+            console.error("Failed to load programme:", error);
+          }
+        }
       } catch (error) {
         console.error("Failed to load schedule:", error);
       } finally {
@@ -385,29 +400,85 @@ export function DashboardPage() {
                   </Card>
                 )}
 
-                {/* AI Coach Card — always visible */}
-                <Card className="mb-6 border-primary/20">
-                  <CardContent className="pt-6 pb-6">
-                    <div className="flex items-start gap-3">
-                      <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                        <Sparkles className="h-5 w-5 text-primary" />
+                {/* This Week / AI Coach Card */}
+                {programme ? (
+                  <Card className="mb-6 border-primary/20">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center gap-2 mb-2">
+                        <BookOpen className="h-5 w-5 text-primary" />
+                        <CardTitle className="text-base">
+                          Week {programme.progress.currentWeek} of {programme.totalWeeks}: {programme.topic}
+                        </CardTitle>
                       </div>
-                      <div className="flex-1">
-                        <h3 className="font-semibold mb-1">Your AI Sleep Coach</h3>
-                        <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
-                          Ask questions and get personalised advice based on your real sleep
-                          data and CBT-i principles.
+                      {/* Progress bar */}
+                      <div className="w-full">
+                        <div className="h-2 bg-muted rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-primary transition-all duration-300"
+                            style={{
+                              width: `${(programme.progress.currentWeek / programme.totalWeeks) * 100}%`,
+                            }}
+                          />
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {programme.progress.currentWeek} of {programme.totalWeeks} weeks
                         </p>
-                        <Button asChild>
-                          <Link to="/chat">
-                            Chat with Your Coach
-                            <ChevronRight className="h-4 w-4 ml-2" />
-                          </Link>
-                        </Button>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {/* Daily nudge */}
+                      <div className="rounded-lg bg-primary/5 border border-primary/10 p-3">
+                        <p className="text-sm leading-relaxed">{programme.dailyNudge.message}</p>
+                      </div>
+
+                      {/* This week's actions */}
+                      <div>
+                        <h4 className="text-sm font-medium mb-2">This week's actions</h4>
+                        <ul className="space-y-2">
+                          {programme.dailyActions.map((action) => (
+                            <li key={action.id} className="flex items-start gap-2">
+                              <Circle className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
+                              <span className="text-sm text-muted-foreground leading-relaxed">
+                                {action.text}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      {/* Talk to Coach button */}
+                      <Button asChild className="w-full">
+                        <Link to="/chat">
+                          <MessageCircle className="h-4 w-4 mr-2" />
+                          Talk to Your Coach
+                        </Link>
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <Card className="mb-6 border-primary/20">
+                    <CardContent className="pt-6 pb-6">
+                      <div className="flex items-start gap-3">
+                        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                          <Sparkles className="h-5 w-5 text-primary" />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="font-semibold mb-1">Your AI Sleep Coach</h3>
+                          <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
+                            Ask questions and get personalised advice based on your real sleep
+                            data and CBT-i principles.
+                          </p>
+                          <Button asChild>
+                            <Link to="/chat">
+                              Chat with Your Coach
+                              <ChevronRight className="h-4 w-4 ml-2" />
+                            </Link>
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
 
                 {/* Sleep History (baseline and post-baseline) */}
                 <div className="mb-6">

@@ -3,10 +3,11 @@ import { authenticate } from "../middleware/auth.js";
 import logger from "../lib/logger.js";
 import {
   sendChatMessage,
-  getQuickReplyContext,
   buildChatContext,
   ChatMessage,
 } from "../services/chat.js";
+import { getCurriculum } from "../services/curriculum.js";
+import { generateConversationStarters } from "../services/nudges.js";
 
 const router = Router();
 
@@ -100,35 +101,32 @@ router.get("/context", authenticate, async (req: Request, res: Response) => {
 });
 
 // GET /api/chat/quick-replies
-// Get contextual quick reply suggestions
+// Get contextual conversation starters powered by the nudge engine
 router.get("/quick-replies", authenticate, async (req: Request, res: Response) => {
   try {
     const userId = req.user!.userId;
-    const { lastNightEfficiency, isLowEfficiency } = await getQuickReplyContext(userId);
+    const context = await buildChatContext(userId);
+    const weekNumber = context.weekNumber;
+    const starters = generateConversationStarters(context, weekNumber);
+    const curriculum = getCurriculum(weekNumber);
 
-    // Default quick reply
-    const quickReplies = [
-      {
-        id: "how_did_i_sleep",
-        label: "How did I sleep?",
-        message: "How did I sleep last night?",
-      },
-    ];
+    // Map starters to the existing quick-reply response shape
+    const quickReplies = starters.map((s) => ({
+      id: s.id,
+      label: s.label,
+      message: s.message,
+    }));
 
-    // Add contextual quick replies
-    if (isLowEfficiency) {
-      quickReplies.push({
-        id: "struggling",
-        label: "I'm struggling",
-        message: "I'm finding it hard to stick to my schedule. What can I do?",
-      });
-    }
+    const lastEntry = context.recentDiaryEntries[0];
+    const lastNightEfficiency = lastEntry?.sleepEfficiency ?? null;
 
     res.json({
       quickReplies,
       context: {
         lastNightEfficiency,
-        isLowEfficiency,
+        isLowEfficiency: lastNightEfficiency !== null && lastNightEfficiency < 80,
+        weekNumber,
+        topic: curriculum.topic,
       },
     });
   } catch (error) {
