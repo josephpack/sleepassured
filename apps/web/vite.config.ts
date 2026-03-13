@@ -1,10 +1,26 @@
-import { defineConfig } from "vite";
+import { defineConfig, Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
 import path from "path";
 
+// In dev, serve landing.html when the browser requests "/"
+function landingDevRedirect(): Plugin {
+  return {
+    name: "landing-dev-redirect",
+    configureServer(server) {
+      server.middlewares.use((req, _res, next) => {
+        if (req.url === "/") {
+          req.url = "/landing.html";
+        }
+        next();
+      });
+    },
+  };
+}
+
 export default defineConfig({
   plugins: [
+    landingDevRedirect(),
     react(),
     VitePWA({
       registerType: "autoUpdate",
@@ -15,7 +31,7 @@ export default defineConfig({
         theme_color: "#6366f1",
         background_color: "#0f172a",
         display: "standalone",
-        start_url: "/",
+        start_url: "/dashboard",
         icons: [
           {
             src: "/icon-192.png",
@@ -37,7 +53,8 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
-        navigateFallbackDenylist: [/^\/api\//],
+        navigateFallback: "index.html",
+        navigateFallbackDenylist: [/^\/api\//, /^\/$/],
         runtimeCaching: [
           {
             urlPattern: /^\/api\//,
@@ -51,6 +68,14 @@ export default defineConfig({
       },
     }),
   ],
+  build: {
+    rollupOptions: {
+      input: {
+        app: path.resolve(__dirname, "index.html"),
+        landing: path.resolve(__dirname, "landing.html"),
+      },
+    },
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

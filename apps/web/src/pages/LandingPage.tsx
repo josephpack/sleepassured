@@ -1,4 +1,3 @@
-import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
   Clock,
@@ -15,10 +14,10 @@ function Navbar() {
       <span className="text-xl font-bold text-white">SleepAssured</span>
       <div className="flex items-center gap-3">
         <Button variant="ghost" className="text-white hover:text-white/80 hover:bg-white/10" asChild>
-          <Link to="/login">Log In</Link>
+          <a href="/login">Log In</a>
         </Button>
         <Button className="bg-white text-primary-950 hover:bg-white/90" asChild>
-          <Link to="/signup">Sign Up</Link>
+          <a href="/signup">Sign Up</a>
         </Button>
       </div>
     </nav>
@@ -40,7 +39,7 @@ function Hero() {
         </p>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           <Button size="lg" className="bg-white text-primary-950 hover:bg-white/90 text-base px-8" asChild>
-            <Link to="/signup">Get Started</Link>
+            <a href="/signup">Get Started</a>
           </Button>
           <Button
             size="lg"
@@ -435,7 +434,7 @@ function FinalCTA() {
           patterns can be changed.
         </p>
         <Button size="lg" className="bg-white text-primary-950 hover:bg-white/90 text-base px-8" asChild>
-          <Link to="/signup">Get Started</Link>
+          <a href="/signup">Get Started</a>
         </Button>
       </div>
     </section>
@@ -447,9 +446,9 @@ function Footer() {
     <footer className="py-8 px-6 bg-primary-950 text-white/60 text-sm">
       <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
         <p>&copy; {new Date().getFullYear()} SleepAssured. All rights reserved.</p>
-        <Link to="/login" className="hover:text-white transition-colors">
+        <a href="/login" className="hover:text-white transition-colors">
           Log in
-        </Link>
+        </a>
       </div>
     </footer>
   );

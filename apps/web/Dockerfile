@@ -24,7 +24,7 @@ FROM nginx:alpine AS runner
 
 COPY --from=builder /app/apps/web/dist /usr/share/nginx/html
 
-# SPA fallback: serve index.html for all routes
+# Landing page at / (exact), SPA fallback for all other routes
 RUN printf 'server {\n\
   listen 80;\n\
   root /usr/share/nginx/html;\n\
@@ -34,6 +34,10 @@ RUN printf 'server {\n\
     proxy_pass http://api:3000;\n\
     proxy_set_header Host $host;\n\
     proxy_set_header X-Real-IP $remote_addr;\n\
+  }\n\
+\n\
+  location = / {\n\
+    try_files /landing.html =404;\n\
   }\n\
 \n\
   location / {\n\
