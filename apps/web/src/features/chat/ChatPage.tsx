@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Send, ArrowLeft, BookOpen, Moon } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Send, BookOpen, Moon } from "lucide-react";
 import {
   sendChatMessage,
   getQuickReplies,
@@ -102,12 +101,7 @@ export function ChatPage() {
   return (
     <div className="flex flex-col h-screen bg-background">
       {/* Header */}
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-border/60 bg-card/80 backdrop-blur-md sa-animate-in">
-        <Button variant="ghost" size="icon" asChild className="shrink-0 h-9 w-9 rounded-xl hover:bg-muted">
-          <Link to="/dashboard">
-            <ArrowLeft className="h-4 w-4" />
-          </Link>
-        </Button>
+      <div className="flex items-center gap-3 px-4 py-3 glass-nav animate-fade-in">
         <div className="flex-1 min-w-0">
           <h1 className="font-display text-lg font-semibold tracking-tight">Sleep Coach</h1>
           {/* Week context banner */}
@@ -121,18 +115,18 @@ export function ChatPage() {
           )}
         </div>
         <div className="h-8 w-8 rounded-full bg-primary/10 border border-primary/15 flex items-center justify-center">
-          <span className="text-sm">✦</span>
+          <span className="text-sm">&#10022;</span>
         </div>
       </div>
 
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto sa-scrollbar">
+      <div className="flex-1 overflow-y-auto custom-scrollbar">
         <div className="max-w-2xl mx-auto px-4 py-6">
-          {/* Curriculum-aware empty state */}
+          {/* Empty state */}
           {messages.length === 0 && (
-            <div className="flex flex-col items-center justify-center min-h-[55vh] text-center px-4 sa-animate-in">
+            <div className="flex flex-col items-center justify-center min-h-[55vh] text-center px-4 animate-fade-up">
               <div className="relative mb-6">
-                <div className="w-16 h-16 rounded-2xl bg-primary/8 border border-primary/12 flex items-center justify-center sa-animate-float">
+                <div className="w-16 h-16 rounded-2xl bg-primary/8 border border-primary/12 flex items-center justify-center animate-float">
                   <Moon className="h-7 w-7 text-primary/70" />
                 </div>
               </div>
@@ -160,12 +154,12 @@ export function ChatPage() {
 
               {/* Quick replies in empty state */}
               {quickReplies.length > 0 && (
-                <div className="flex flex-wrap gap-2 justify-center sa-animate-in sa-stagger-2">
+                <div className="flex flex-wrap gap-2 justify-center animate-fade-up stagger-2">
                   {quickReplies.map((reply) => (
                     <button
                       key={reply.id}
                       onClick={() => handleQuickReply(reply)}
-                      className="sa-pill"
+                      className="pill"
                     >
                       {reply.label}
                     </button>
@@ -179,7 +173,7 @@ export function ChatPage() {
           {messages.map((message, index) => (
             <div
               key={index}
-              className={`mb-5 sa-animate-scale ${
+              className={`mb-5 animate-scale-in ${
                 message.role === "user" ? "flex justify-end" : ""
               }`}
               style={{ animationDelay: `${Math.min(index * 0.05, 0.2)}s` }}
@@ -187,8 +181,8 @@ export function ChatPage() {
               <div
                 className={`max-w-[88%] sm:max-w-[80%] px-4 py-3 ${
                   message.role === "user"
-                    ? "sa-bubble-user"
-                    : "sa-bubble-assistant"
+                    ? "bubble-user"
+                    : "bubble-assistant"
                 }`}
               >
                 <p className="text-sm whitespace-pre-wrap leading-relaxed">
@@ -200,11 +194,11 @@ export function ChatPage() {
 
           {/* Loading indicator */}
           {isLoading && (
-            <div className="mb-5 sa-animate-scale">
-              <div className="sa-bubble-assistant inline-flex items-center gap-1.5 px-5 py-4">
-                <div className="sa-thinking-dot" />
-                <div className="sa-thinking-dot" />
-                <div className="sa-thinking-dot" />
+            <div className="mb-5 animate-scale-in">
+              <div className="bubble-assistant inline-flex items-center gap-1.5 px-5 py-4">
+                <div className="thinking-dot" />
+                <div className="thinking-dot" />
+                <div className="thinking-dot" />
               </div>
             </div>
           )}
@@ -215,7 +209,7 @@ export function ChatPage() {
 
       {/* Persistent conversation starters (shown above input when messages exist) */}
       {messages.length > 0 && quickReplies.length > 0 && (
-        <div className="border-t border-border/40 bg-card/60 backdrop-blur-md px-4 pt-2.5 pb-0">
+        <div className="border-t border-border/30 bg-card/60 backdrop-blur-md px-4 pt-2.5 pb-0">
           <div className="max-w-2xl mx-auto">
             <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
               {quickReplies.map((reply) => (
@@ -223,7 +217,7 @@ export function ChatPage() {
                   key={reply.id}
                   onClick={() => handleQuickReply(reply)}
                   disabled={isLoading}
-                  className="sa-pill text-xs disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="pill text-xs disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   {reply.label}
                 </button>
@@ -234,9 +228,9 @@ export function ChatPage() {
       )}
 
       {/* Input Area */}
-      <div className={`border-t border-border/40 bg-card/80 backdrop-blur-md p-4 pb-3 ${messages.length > 0 && quickReplies.length > 0 ? "border-t-0 pt-2" : ""}`}>
+      <div className={`border-t border-border/30 glass-nav p-4 pb-3 ${messages.length > 0 && quickReplies.length > 0 ? "border-t-0 pt-2" : ""}`}>
         <div className="max-w-2xl mx-auto">
-          <div className="flex items-end gap-2.5 bg-muted/60 border border-border/50 rounded-2xl px-4 py-2.5 transition-colors focus-within:border-primary/30 focus-within:bg-muted/80">
+          <div className="flex items-end gap-2.5 bg-muted/40 border border-border/40 rounded-2xl px-4 py-2.5 transition-colors focus-within:border-primary/30 focus-within:bg-muted/60">
             <textarea
               ref={inputRef}
               value={inputValue}
@@ -245,7 +239,7 @@ export function ChatPage() {
               placeholder="Ask about your sleep..."
               rows={1}
               disabled={isLoading}
-              className="flex-1 bg-transparent resize-none border-0 focus:ring-0 focus:outline-none text-sm py-1.5 max-h-[120px] placeholder:text-muted-foreground/50"
+              className="flex-1 bg-transparent resize-none border-0 focus:ring-0 focus:outline-none text-sm py-1.5 max-h-[120px] placeholder:text-muted-foreground/40"
             />
             <Button
               size="icon"
@@ -256,7 +250,7 @@ export function ChatPage() {
               <Send className="h-4 w-4" />
             </Button>
           </div>
-          <p className="text-[11px] text-muted-foreground/60 text-center mt-2 tracking-wide">
+          <p className="text-[10px] text-muted-foreground/40 text-center mt-2 tracking-wide">
             Your sleep coach uses your diary data to give personalised advice
           </p>
         </div>

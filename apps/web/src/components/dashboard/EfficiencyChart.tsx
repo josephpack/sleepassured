@@ -8,7 +8,6 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingUp, Loader2 } from "lucide-react";
 import { getScheduleHistory, SleepSchedule } from "@/features/diary/api";
 
@@ -48,12 +47,10 @@ export function EfficiencyChart() {
 
   if (isLoading) {
     return (
-      <Card className="sa-card">
-        <CardContent className="flex flex-col items-center justify-center py-14">
-          <Loader2 className="h-5 w-5 animate-spin text-primary/40" />
-          <p className="text-xs text-muted-foreground mt-3">Loading trends...</p>
-        </CardContent>
-      </Card>
+      <div className="glass-card rounded-2xl flex flex-col items-center justify-center py-14">
+        <Loader2 className="h-5 w-5 animate-spin text-primary/40" />
+        <p className="text-xs text-muted-foreground mt-3">Loading trends...</p>
+      </div>
     );
   }
 
@@ -62,82 +59,83 @@ export function EfficiencyChart() {
   }
 
   return (
-    <Card className="sa-card overflow-hidden">
-      <CardHeader>
-        <div className="flex items-center gap-3">
-          <div className="h-9 w-9 rounded-xl bg-primary/10 border border-primary/10 flex items-center justify-center">
-            <TrendingUp className="h-4 w-4 text-primary" />
-          </div>
-          <CardTitle className="font-display text-lg tracking-tight">
-            Sleep Efficiency Trend
-          </CardTitle>
+    <div className="glass-card rounded-2xl p-5">
+      <div className="flex items-center gap-3 mb-4">
+        <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center">
+          <TrendingUp className="h-4 w-4 text-primary" />
         </div>
-      </CardHeader>
-      <CardContent>
-        <div className="h-48">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart
-              data={data}
-              margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.6} />
-              <XAxis
-                dataKey="week"
-                tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }}
-                tickLine={false}
-                axisLine={false}
-              />
-              <YAxis
-                domain={[0, 100]}
-                tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }}
-                tickLine={false}
-                axisLine={false}
-                tickFormatter={(value) => `${value}%`}
-              />
-              <Tooltip
-                content={({ active, payload }) => {
-                  if (active && payload && payload.length) {
-                    const value = payload[0]?.value as number;
-                    return (
-                      <div className="sa-card rounded-xl p-3 shadow-lg border border-border/50">
-                        <p className="text-sm font-semibold">
-                          {payload[0]?.payload?.week}
-                        </p>
-                        <p className="text-sm text-muted-foreground mt-0.5">
-                          Efficiency: <span className="font-semibold text-foreground">{value}%</span>
-                        </p>
-                      </div>
-                    );
-                  }
-                  return null;
-                }}
-              />
-              <Line
-                type="monotone"
-                dataKey="efficiency"
-                stroke="hsl(var(--primary))"
-                strokeWidth={2.5}
-                dot={{ fill: "hsl(var(--primary))", strokeWidth: 0, r: 4 }}
-                activeDot={{ r: 6, fill: "hsl(var(--primary))", stroke: "hsl(var(--card))", strokeWidth: 2 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-        <div className="mt-3 flex justify-center gap-4 text-[11px] text-muted-foreground">
-          <span className="flex items-center gap-1.5">
-            <span className="inline-block h-2 w-2 rounded-full sa-eff-bg-excellent" />
-            85%+ Excellent
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="inline-block h-2 w-2 rounded-full sa-eff-bg-good" />
-            80-84% Good
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="inline-block h-2 w-2 rounded-full sa-eff-bg-low" />
-            &lt;80% Needs work
-          </span>
-        </div>
-      </CardContent>
-    </Card>
+        <h3 className="font-display text-base font-semibold tracking-tight">
+          Efficiency Trend
+        </h3>
+      </div>
+
+      <div className="h-48">
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart
+            data={data}
+            margin={{ top: 5, right: 12, left: -8, bottom: 5 }}
+          >
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke="hsla(220, 40%, 100%, 0.06)"
+              vertical={false}
+            />
+            <XAxis
+              dataKey="week"
+              tick={{ fontSize: 11, fill: "hsl(220 15% 55%)" }}
+              tickLine={false}
+              axisLine={false}
+            />
+            <YAxis
+              domain={[0, 100]}
+              tick={{ fontSize: 11, fill: "hsl(220 15% 55%)" }}
+              tickLine={false}
+              axisLine={false}
+              tickFormatter={(value) => `${value}%`}
+            />
+            <Tooltip
+              content={({ active, payload }) => {
+                if (active && payload && payload.length) {
+                  const value = payload[0]?.value as number;
+                  return (
+                    <div className="glass-strong rounded-xl p-3 shadow-lg">
+                      <p className="text-sm font-semibold">
+                        {payload[0]?.payload?.week}
+                      </p>
+                      <p className="text-sm text-muted-foreground mt-0.5">
+                        Efficiency: <span className="font-semibold text-foreground">{value}%</span>
+                      </p>
+                    </div>
+                  );
+                }
+                return null;
+              }}
+            />
+            <Line
+              type="monotone"
+              dataKey="efficiency"
+              stroke="hsl(225 85% 60%)"
+              strokeWidth={2.5}
+              dot={{ fill: "hsl(225 85% 60%)", strokeWidth: 0, r: 4 }}
+              activeDot={{ r: 6, fill: "hsl(225 85% 60%)", stroke: "hsl(222 47% 6%)", strokeWidth: 2 }}
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+      <div className="mt-3 flex justify-center gap-4 text-[10px] text-muted-foreground">
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block h-2 w-2 rounded-full eff-bg-excellent" />
+          85%+ Excellent
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block h-2 w-2 rounded-full eff-bg-good" />
+          80-84% Good
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block h-2 w-2 rounded-full eff-bg-low" />
+          &lt;80% Needs work
+        </span>
+      </div>
+    </div>
   );
 }

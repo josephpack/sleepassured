@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, Moon, Sun, Activity } from "lucide-react";
 import {
   getSleepHistory,
@@ -21,15 +20,15 @@ function formatDuration(mins: number): string {
 }
 
 function efficiencyColor(eff: number): string {
-  if (eff >= 85) return "sa-eff-bg-excellent";
-  if (eff >= 75) return "sa-eff-bg-good";
-  return "sa-eff-bg-low";
+  if (eff >= 85) return "eff-bg-excellent";
+  if (eff >= 75) return "eff-bg-good";
+  return "eff-bg-low";
 }
 
 function efficiencyTextColor(eff: number): string {
-  if (eff >= 85) return "sa-eff-excellent";
-  if (eff >= 75) return "sa-eff-good";
-  return "sa-eff-low";
+  if (eff >= 85) return "eff-excellent";
+  if (eff >= 75) return "eff-good";
+  return "eff-low";
 }
 
 function dayLabel(dateStr: string): string {
@@ -45,43 +44,43 @@ function SleepStageBar({ record }: { record: WhoopSleepHistoryRecord }) {
 
   return (
     <div className="w-full">
-      <div className="flex h-2.5 rounded-full overflow-hidden gap-px">
+      <div className="flex h-2 rounded-full overflow-hidden gap-px">
         <div
-          className="sa-stage-rem rounded-l-full"
+          className="stage-rem rounded-l-full"
           style={{ width: pct(record.remMins) }}
           title={`REM: ${formatDuration(record.remMins)}`}
         />
         <div
-          className="sa-stage-light"
+          className="stage-light"
           style={{ width: pct(record.lightMins) }}
           title={`Light: ${formatDuration(record.lightMins)}`}
         />
         <div
-          className="sa-stage-deep"
+          className="stage-deep"
           style={{ width: pct(record.deepMins) }}
           title={`Deep: ${formatDuration(record.deepMins)}`}
         />
         <div
-          className="sa-stage-awake rounded-r-full"
+          className="stage-awake rounded-r-full"
           style={{ width: pct(record.awakeMins) }}
           title={`Awake: ${formatDuration(record.awakeMins)}`}
         />
       </div>
-      <div className="flex gap-3 mt-2.5 text-xs text-muted-foreground flex-wrap">
+      <div className="flex gap-3 mt-2.5 text-[11px] text-muted-foreground flex-wrap">
         <span className="flex items-center gap-1.5">
-          <span className="inline-block h-2 w-2 rounded-full sa-dot-rem" />
+          <span className="inline-block h-2 w-2 rounded-full dot-rem" />
           REM {formatDuration(record.remMins)}
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="inline-block h-2 w-2 rounded-full sa-dot-light" />
+          <span className="inline-block h-2 w-2 rounded-full dot-light" />
           Light {formatDuration(record.lightMins)}
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="inline-block h-2 w-2 rounded-full sa-dot-deep" />
+          <span className="inline-block h-2 w-2 rounded-full dot-deep" />
           Deep {formatDuration(record.deepMins)}
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="inline-block h-2 w-2 rounded-full sa-dot-awake" />
+          <span className="inline-block h-2 w-2 rounded-full dot-awake" />
           Awake {formatDuration(record.awakeMins)}
         </span>
       </div>
@@ -91,61 +90,58 @@ function SleepStageBar({ record }: { record: WhoopSleepHistoryRecord }) {
 
 function LastNightCard({ record }: { record: WhoopSleepHistoryRecord }) {
   return (
-    <Card className="sa-card overflow-hidden">
-      <CardHeader className="pb-3">
-        <div className="flex items-center gap-3">
-          <div className="h-9 w-9 rounded-xl bg-lavender/10 border border-lavender/15 flex items-center justify-center">
-            <Moon className="h-4 w-4 text-lavender" />
-          </div>
-          <CardTitle className="font-display text-lg tracking-tight">Last Night</CardTitle>
+    <div className="glass-card rounded-2xl p-5">
+      <div className="flex items-center gap-3 mb-4">
+        <div className="h-9 w-9 rounded-xl bg-[hsla(260,40%,65%,0.12)] flex items-center justify-center">
+          <Moon className="h-4 w-4 text-[hsl(260,40%,65%)]" />
         </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Times + totals */}
-        <div className="grid grid-cols-2 gap-3">
-          <div className="text-center p-3.5 bg-muted/40 rounded-xl border border-border/30">
-            <div className="flex items-center justify-center gap-1.5 text-muted-foreground mb-1.5">
-              <Moon className="h-3 w-3 text-lavender/70" />
-              <span className="text-[11px] font-medium uppercase tracking-wider">Bedtime</span>
-            </div>
-            <span className="font-display text-lg font-semibold">{formatTime(record.bedtime)}</span>
-          </div>
-          <div className="text-center p-3.5 bg-muted/40 rounded-xl border border-border/30">
-            <div className="flex items-center justify-center gap-1.5 text-muted-foreground mb-1.5">
-              <Sun className="h-3 w-3 text-amber/70" />
-              <span className="text-[11px] font-medium uppercase tracking-wider">Wake</span>
-            </div>
-            <span className="font-display text-lg font-semibold">{formatTime(record.wakeTime)}</span>
-          </div>
-        </div>
+        <h3 className="font-display text-base font-semibold tracking-tight">Last Night</h3>
+      </div>
 
-        <div className="space-y-2">
-          <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Total sleep</span>
-            <span className="font-semibold">{formatDuration(record.totalSleepMins)}</span>
+      {/* Times */}
+      <div className="grid grid-cols-2 gap-3 mb-4">
+        <div className="text-center p-3 bg-muted/30 rounded-xl">
+          <div className="flex items-center justify-center gap-1.5 text-muted-foreground mb-1">
+            <Moon className="h-3 w-3 text-[hsl(260,40%,65%)]/70" />
+            <span className="text-[10px] font-medium uppercase tracking-wider">Bedtime</span>
           </div>
+          <span className="font-display text-lg font-semibold">{formatTime(record.bedtime)}</span>
+        </div>
+        <div className="text-center p-3 bg-muted/30 rounded-xl">
+          <div className="flex items-center justify-center gap-1.5 text-muted-foreground mb-1">
+            <Sun className="h-3 w-3 text-accent/70" />
+            <span className="text-[10px] font-medium uppercase tracking-wider">Wake</span>
+          </div>
+          <span className="font-display text-lg font-semibold">{formatTime(record.wakeTime)}</span>
+        </div>
+      </div>
+
+      {/* Stats */}
+      <div className="space-y-2 mb-4">
+        <div className="flex justify-between text-sm">
+          <span className="text-muted-foreground">Total sleep</span>
+          <span className="font-semibold">{formatDuration(record.totalSleepMins)}</span>
+        </div>
+        <div className="flex justify-between text-sm">
+          <span className="text-muted-foreground">Efficiency</span>
+          <span className={`font-semibold ${efficiencyTextColor(record.sleepEfficiency)}`}>
+            {record.sleepEfficiency.toFixed(0)}%
+          </span>
+        </div>
+        {record.recoveryScore !== null && (
           <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Sleep efficiency</span>
-            <span className={`font-semibold ${efficiencyTextColor(record.sleepEfficiency)}`}>
-              {record.sleepEfficiency.toFixed(0)}%
+            <span className="text-muted-foreground flex items-center gap-1.5">
+              <Activity className="h-3.5 w-3.5" />
+              Recovery
             </span>
+            <span className="font-semibold">{record.recoveryScore}%</span>
           </div>
+        )}
+      </div>
 
-          {record.recoveryScore !== null && (
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground flex items-center gap-1.5">
-                <Activity className="h-3.5 w-3.5" />
-                Recovery
-              </span>
-              <span className="font-semibold">{record.recoveryScore}%</span>
-            </div>
-          )}
-        </div>
-
-        {/* Sleep stage bar */}
-        <SleepStageBar record={record} />
-      </CardContent>
-    </Card>
+      {/* Sleep stage bar */}
+      <SleepStageBar record={record} />
+    </div>
   );
 }
 
@@ -154,30 +150,26 @@ function WeeklyTrend({ records }: { records: WhoopSleepHistoryRecord[] }) {
   const week = records.slice(0, 7).reverse();
 
   return (
-    <Card className="sa-card overflow-hidden">
-      <CardHeader className="pb-3">
-        <CardTitle className="font-display text-lg tracking-tight">7-Day Trend</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="flex justify-between gap-1">
-          {week.map((r) => (
-            <div
-              key={r.date}
-              className="flex flex-col items-center gap-1.5 flex-1"
-              title={`${r.date}: ${formatDuration(r.totalSleepMins)}, ${r.sleepEfficiency.toFixed(0)}% efficiency`}
-            >
-              <span className="text-[11px] text-muted-foreground font-medium">{dayLabel(r.date)}</span>
-              <div className={`h-3 w-3 rounded-full ${efficiencyColor(r.sleepEfficiency)} transition-transform hover:scale-125`} />
-              <span className="text-xs font-semibold">{formatDuration(r.totalSleepMins)}</span>
-              <span className="text-[10px] text-muted-foreground">{r.sleepEfficiency.toFixed(0)}%</span>
-            </div>
-          ))}
-        </div>
-        <p className="text-[11px] text-muted-foreground/60 text-center mt-3.5 tracking-wide">
-          Colour indicates sleep efficiency: green 85%+, amber 75%+, red below 75%
-        </p>
-      </CardContent>
-    </Card>
+    <div className="glass-card rounded-2xl p-5">
+      <h3 className="font-display text-base font-semibold tracking-tight mb-4">7-Day Trend</h3>
+      <div className="flex justify-between gap-1">
+        {week.map((r) => (
+          <div
+            key={r.date}
+            className="flex flex-col items-center gap-1.5 flex-1"
+            title={`${r.date}: ${formatDuration(r.totalSleepMins)}, ${r.sleepEfficiency.toFixed(0)}% efficiency`}
+          >
+            <span className="text-[10px] text-muted-foreground font-medium">{dayLabel(r.date)}</span>
+            <div className={`h-3 w-3 rounded-full ${efficiencyColor(r.sleepEfficiency)} transition-transform hover:scale-125`} />
+            <span className="text-xs font-semibold">{formatDuration(r.totalSleepMins)}</span>
+            <span className="text-[10px] text-muted-foreground">{r.sleepEfficiency.toFixed(0)}%</span>
+          </div>
+        ))}
+      </div>
+      <p className="text-[10px] text-muted-foreground/50 text-center mt-3 tracking-wide">
+        Colour indicates sleep efficiency: green 85%+, amber 75%+, red below 75%
+      </p>
+    </div>
   );
 }
 
@@ -201,12 +193,10 @@ export function SleepHistory() {
 
   if (isLoading) {
     return (
-      <Card className="sa-card">
-        <CardContent className="flex flex-col items-center justify-center py-10">
-          <Loader2 className="h-5 w-5 animate-spin text-primary/40" />
-          <p className="text-xs text-muted-foreground mt-3">Loading sleep data...</p>
-        </CardContent>
-      </Card>
+      <div className="glass-card rounded-2xl flex flex-col items-center justify-center py-10">
+        <Loader2 className="h-5 w-5 animate-spin text-primary/40" />
+        <p className="text-xs text-muted-foreground mt-3">Loading sleep data...</p>
+      </div>
     );
   }
 

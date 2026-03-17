@@ -17,17 +17,6 @@ export default {
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
-          50: "#f0f4ff",
-          100: "#e0e9ff",
-          200: "#c7d6fe",
-          300: "#a4b8fc",
-          400: "#8093f8",
-          500: "#6370f1",
-          600: "#4f4de5",
-          700: "#433eca",
-          800: "#3835a3",
-          900: "#323381",
-          950: "#1e1d4b",
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
@@ -53,20 +42,6 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        night: {
-          DEFAULT: "hsl(var(--night))",
-          light: "hsl(var(--night-light))",
-        },
-        lavender: {
-          DEFAULT: "hsl(var(--lavender))",
-          muted: "hsl(var(--lavender-muted))",
-        },
-        amber: {
-          DEFAULT: "hsl(var(--amber))",
-          soft: "hsl(var(--amber-soft))",
-        },
-        dawn: "hsl(var(--dawn))",
-        sage: "hsl(var(--sage))",
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -74,6 +49,7 @@ export default {
         sm: "calc(var(--radius) - 4px)",
         xl: "calc(var(--radius) + 4px)",
         "2xl": "calc(var(--radius) + 8px)",
+        "3xl": "1.5rem",
       },
       keyframes: {
         "accordion-down": {
