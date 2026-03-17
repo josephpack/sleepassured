@@ -8,8 +8,6 @@ import {
   TrendingUp,
   ChevronRight,
   Loader2,
-  Clock,
-  Target,
   Sparkles,
   Lock,
   BarChart3,
@@ -39,16 +37,21 @@ function formatTimeDisplay(timeStr: string): string {
   const parts = timeStr.split(":").map(Number);
   const hours = parts[0] ?? 0;
   const minutes = parts[1] ?? 0;
-  const period = hours >= 12 ? "PM" : "AM";
   const displayHours = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
-  return `${displayHours}:${minutes.toString().padStart(2, "0")} ${period}`;
+  return `${displayHours}:${minutes.toString().padStart(2, "0")}`;
+}
+
+function formatTimePeriod(timeStr: string): string {
+  const parts = timeStr.split(":").map(Number);
+  const hours = parts[0] ?? 0;
+  return hours >= 12 ? "PM" : "AM";
 }
 
 // Calculate hours and minutes from total minutes
 function formatDuration(mins: number): string {
   const hours = Math.floor(mins / 60);
   const minutes = mins % 60;
-  if (minutes === 0) return `${hours} hours`;
+  if (minutes === 0) return `${hours}h`;
   return `${hours}h ${minutes}m`;
 }
 
@@ -72,44 +75,166 @@ function getGreeting(): string {
   return "Good evening";
 }
 
-// Circular progress ring component
-function EfficiencyRing({ value, size = 80 }: { value: number; size?: number }) {
+// ═══════════════════════════════════════
+// EFFICIENCY RING — used in hero card
+// ═══════════════════════════════════════
+function EfficiencyRing({ value, size = 72, label }: { value: number; size?: number; label?: string }) {
   const strokeWidth = 5;
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (value / 100) * circumference;
-  const colorClass = value >= 85 ? "eff-ring-excellent" : value >= 75 ? "eff-ring-good" : "eff-ring-low";
-  const textColor = value >= 85 ? "eff-excellent" : value >= 75 ? "eff-good" : "eff-low";
 
   return (
-    <svg width={size} height={size} className="shrink-0">
-      <circle
-        className="ring-track"
-        cx={size / 2}
-        cy={size / 2}
-        r={radius}
-        strokeWidth={strokeWidth}
-      />
-      <circle
-        className={`ring-fill ${colorClass}`}
-        cx={size / 2}
-        cy={size / 2}
-        r={radius}
-        strokeWidth={strokeWidth}
-        strokeDasharray={`${circumference}`}
-        strokeDashoffset={offset}
-      />
-      <text
-        x="50%"
-        y="50%"
-        dominantBaseline="central"
-        textAnchor="middle"
-        className={`font-display font-bold text-lg ${textColor}`}
-        fill="currentColor"
-      >
-        {value.toFixed(0)}%
-      </text>
-    </svg>
+    <div className="flex flex-col items-center">
+      <svg width={size} height={size} className="shrink-0">
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke="hsla(0,0%,100%,0.15)"
+          strokeWidth={strokeWidth}
+        />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke="white"
+          strokeWidth={strokeWidth}
+          strokeLinecap="round"
+          strokeDasharray={`${circumference}`}
+          strokeDashoffset={offset}
+          style={{ transform: "rotate(-90deg)", transformOrigin: "center", transition: "stroke-dashoffset 1s ease-out" }}
+        />
+        <text
+          x="50%"
+          y="50%"
+          dominantBaseline="central"
+          textAnchor="middle"
+          fill="white"
+          className="font-display font-bold"
+          style={{ fontSize: size > 70 ? "1.25rem" : "1rem" }}
+        >
+          {value.toFixed(0)}
+        </text>
+      </svg>
+      {label && (
+        <span className="text-[10px] text-white/70 font-medium mt-1">{label}</span>
+      )}
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════
+// CLOCK GAUGE — bedtime/wake with dial
+// ═══════════════════════════════════════
+function ClockGauge({ durationMins }: { durationMins: number }) {
+  const size = 120;
+  const center = size / 2;
+  const outerR = 52;
+  const innerR = 44;
+  const tickCount = 60;
+  const needleLength = 38;
+
+  // Needle angle: duration as proportion of 12h, starting from 12 o'clock
+  const proportion = Math.min(durationMins / (12 * 60), 1);
+  const needleAngle = proportion * 360 - 90; // -90 to start at top
+  const needleRad = (needleAngle * Math.PI) / 180;
+  const needleX = center + needleLength * Math.cos(needleRad);
+  const needleY = center + needleLength * Math.sin(needleRad);
+
+  // Sleep arc (from 12 o'clock clockwise by proportion)
+  const arcStartAngle = -90;
+  const arcEndAngle = arcStartAngle + proportion * 360;
+  const arcStartRad = (arcStartAngle * Math.PI) / 180;
+  const arcEndRad = (arcEndAngle * Math.PI) / 180;
+  const arcR = (outerR + innerR) / 2;
+  const largeArc = proportion > 0.5 ? 1 : 0;
+  const arcX1 = center + arcR * Math.cos(arcStartRad);
+  const arcY1 = center + arcR * Math.sin(arcStartRad);
+  const arcX2 = center + arcR * Math.cos(arcEndRad);
+  const arcY2 = center + arcR * Math.sin(arcEndRad);
+
+  return (
+    <div className="relative flex items-center justify-center">
+      <svg width={size} height={size} className="shrink-0">
+        {/* Outer glow ring */}
+        <circle cx={center} cy={center} r={outerR + 2} fill="none" stroke="hsla(220,40%,100%,0.04)" strokeWidth={1} />
+
+        {/* Background ring */}
+        <circle cx={center} cy={center} r={arcR} fill="none" stroke="hsla(220,40%,100%,0.08)" strokeWidth={6} />
+
+        {/* Sleep duration arc */}
+        <path
+          d={`M ${arcX1} ${arcY1} A ${arcR} ${arcR} 0 ${largeArc} 1 ${arcX2} ${arcY2}`}
+          fill="none"
+          stroke="hsla(225,85%,60%,0.5)"
+          strokeWidth={6}
+          strokeLinecap="round"
+        />
+
+        {/* Tick marks */}
+        {Array.from({ length: tickCount }).map((_, i) => {
+          const angle = (i / tickCount) * 360 - 90;
+          const rad = (angle * Math.PI) / 180;
+          const isMajor = i % 5 === 0;
+          const r1 = isMajor ? outerR - 2 : outerR - 1;
+          const r2 = outerR + (isMajor ? 3 : 1.5);
+          return (
+            <line
+              key={i}
+              x1={center + r1 * Math.cos(rad)}
+              y1={center + r1 * Math.sin(rad)}
+              x2={center + r2 * Math.cos(rad)}
+              y2={center + r2 * Math.sin(rad)}
+              stroke={isMajor ? "hsla(220,40%,100%,0.25)" : "hsla(220,40%,100%,0.1)"}
+              strokeWidth={isMajor ? 1.5 : 0.75}
+            />
+          );
+        })}
+
+        {/* Inner circle */}
+        <circle cx={center} cy={center} r={innerR - 8} fill="hsla(222,47%,5%,0.6)" stroke="hsla(220,40%,100%,0.08)" strokeWidth={1} />
+
+        {/* Needle */}
+        <line
+          x1={center}
+          y1={center}
+          x2={needleX}
+          y2={needleY}
+          stroke="hsl(38 80% 55%)"
+          strokeWidth={2}
+          strokeLinecap="round"
+        />
+        {/* Needle center dot */}
+        <circle cx={center} cy={center} r={3} fill="hsl(38 80% 55%)" />
+        <circle cx={center} cy={center} r={1.5} fill="hsl(222 47% 6%)" />
+
+        {/* Duration text */}
+        <text
+          x={center}
+          y={center - 6}
+          textAnchor="middle"
+          dominantBaseline="auto"
+          fill="white"
+          className="font-display font-semibold"
+          style={{ fontSize: "0.85rem" }}
+        >
+          {formatDuration(durationMins)}
+        </text>
+        <text
+          x={center}
+          y={center + 10}
+          textAnchor="middle"
+          dominantBaseline="auto"
+          fill="hsla(220,15%,65%,1)"
+          style={{ fontSize: "0.55rem" }}
+        >
+          in bed
+        </text>
+      </svg>
+    </div>
   );
 }
 
@@ -135,7 +260,6 @@ export function DashboardPage() {
           Object.keys(parsed).filter((id) => currentIds.has(id))
         );
         setCompletedActions(filtered);
-        // Clean stale entries
         const cleaned: Record<string, boolean> = {};
         for (const id of filtered) cleaned[id] = true;
         localStorage.setItem("sleepassured_actions_completed", JSON.stringify(cleaned));
@@ -174,7 +298,6 @@ export function DashboardPage() {
         setScheduleData(schedData);
         setWhoopConnected(whoopStatus.connected);
 
-        // Load programme data if schedule exists
         if (schedData.hasSchedule) {
           try {
             const prog = await getCurrentProgramme();
@@ -225,12 +348,12 @@ export function DashboardPage() {
   return (
     <div className="px-4 pt-6">
       <div className="mx-auto max-w-lg">
-        {/* Header — time-based greeting */}
+        {/* Header */}
         <div className="mb-6 animate-fade-up">
-          <p className="text-sm text-muted-foreground font-medium">
+          <p className="text-sm text-white/60 font-medium">
             {getGreeting()}{firstName ? `, ${firstName}` : ""}
           </p>
-          <h1 className="font-display text-2xl font-semibold tracking-tight mt-0.5">
+          <h1 className="font-display text-2xl font-semibold tracking-tight text-white mt-0.5">
             {hasSchedule && schedule?.weekNumber
               ? `Week ${schedule.weekNumber}`
               : "Your Sleep"}
@@ -245,35 +368,33 @@ export function DashboardPage() {
                 <AlertTriangle className="h-4 w-4 text-accent" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold">WHOOP needs refreshing</p>
-                <p className="text-xs text-muted-foreground mt-0.5">
+                <p className="text-sm font-semibold text-white">WHOOP needs refreshing</p>
+                <p className="text-xs text-white/50 mt-0.5">
                   Sleep data syncing is paused.
                 </p>
               </div>
-              <Button variant="outline" size="sm" asChild className="shrink-0 rounded-xl text-xs border-border/60">
+              <Button variant="outline" size="sm" asChild className="shrink-0 rounded-xl text-xs border-white/15">
                 <Link to="/settings">Reconnect</Link>
               </Button>
             </div>
           </div>
         )}
 
-        {/* Onboarding CTA for users who haven't completed onboarding */}
+        {/* Onboarding CTA */}
         {!user?.onboardingCompleted && (
-          <div className="mb-5 animate-fade-up stagger-1 glass-card rounded-2xl overflow-hidden">
-            <div className="gradient-card p-5">
-              <h2 className="font-display text-lg font-semibold tracking-tight">
-                Welcome, {firstName}
-              </h2>
-              <p className="text-sm text-muted-foreground mt-1 mb-4">
-                Complete onboarding to start your sleep improvement journey
-              </p>
-              <Button asChild className="rounded-xl">
-                <Link to="/onboarding">
-                  Complete Onboarding
-                  <ChevronRight className="h-4 w-4 ml-1.5" />
-                </Link>
-              </Button>
-            </div>
+          <div className="mb-5 animate-fade-up stagger-1 rounded-2xl overflow-hidden gradient-hero p-5">
+            <h2 className="font-display text-lg font-semibold tracking-tight text-white">
+              Welcome, {firstName}
+            </h2>
+            <p className="text-sm text-white/70 mt-1 mb-4">
+              Complete onboarding to start your sleep improvement journey
+            </p>
+            <Button asChild className="rounded-xl bg-white text-primary hover:bg-white/90">
+              <Link to="/onboarding">
+                Complete Onboarding
+                <ChevronRight className="h-4 w-4 ml-1.5" />
+              </Link>
+            </Button>
           </div>
         )}
 
@@ -282,50 +403,46 @@ export function DashboardPage() {
             {/* Loading State */}
             {isLoading && (
               <div className="flex flex-col items-center justify-center py-20 animate-fade-in">
-                <div className="relative">
-                  <div className="h-12 w-12 rounded-full border-2 border-primary/20" />
-                  <Loader2 className="h-12 w-12 animate-spin text-primary absolute inset-0" />
-                </div>
-                <p className="text-sm text-muted-foreground mt-4 font-medium">Loading your dashboard...</p>
+                <Loader2 className="h-10 w-10 animate-spin text-primary" />
+                <p className="text-sm text-white/50 mt-4 font-medium">Loading your dashboard...</p>
               </div>
             )}
 
             {!isLoading && (
-              <div className="space-y-4">
-                {/* Hero Card — pre-schedule states */}
+              <div className="space-y-5">
+                {/* ═══════════════════════════════════════
+                    PRE-SCHEDULE STATES
+                    ═══════════════════════════════════════ */}
                 {!hasSchedule && (
-                  <div className="animate-fade-up stagger-1 glass-card rounded-2xl overflow-hidden">
-                    <div className="gradient-card p-5">
-                      <div className="flex items-start gap-4">
-                        <div className="h-11 w-11 rounded-2xl bg-primary/10 border border-primary/15 flex items-center justify-center shrink-0 animate-float">
-                          <Sparkles className="h-5 w-5 text-primary" />
-                        </div>
-                        <div>
-                          <h2 className="font-display text-lg font-semibold mb-1.5 tracking-tight">
-                            AI Sleep Coach, Powered by Real Data
-                          </h2>
-                          <p className="text-sm text-muted-foreground leading-relaxed">
-                            SleepAssured combines your WHOOP sleep data with AI trained on CBT-i
-                            principles to create a personalised programme.
-                          </p>
-                        </div>
+                  <div className="animate-fade-up stagger-1 rounded-2xl overflow-hidden gradient-hero p-5">
+                    <div className="flex items-start gap-4">
+                      <div className="h-11 w-11 rounded-2xl bg-white/10 flex items-center justify-center shrink-0 animate-float">
+                        <Sparkles className="h-5 w-5 text-white" />
+                      </div>
+                      <div>
+                        <h2 className="font-display text-lg font-semibold mb-1.5 tracking-tight text-white">
+                          AI Sleep Coach, Powered by Real Data
+                        </h2>
+                        <p className="text-sm text-white/70 leading-relaxed">
+                          SleepAssured combines your WHOOP sleep data with AI trained on CBT-i
+                          principles to create a personalised programme.
+                        </p>
                       </div>
                     </div>
                   </div>
                 )}
 
-                {/* First-time user — connect WHOOP or waiting for data */}
                 {isFirstTime && (
                   <div className="animate-fade-up stagger-2 glass-card rounded-2xl p-5">
                     <div className="flex items-center gap-3 mb-3">
-                      <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                      <div className="h-10 w-10 rounded-xl bg-primary/15 flex items-center justify-center">
                         <Wifi className="h-5 w-5 text-primary" />
                       </div>
-                      <h3 className="font-display text-base font-semibold tracking-tight">
+                      <h3 className="font-display text-base font-semibold tracking-tight text-white">
                         {whoopConnected ? "Waiting for Sleep Data" : "Connect WHOOP to Get Started"}
                       </h3>
                     </div>
-                    <p className="text-sm text-muted-foreground leading-relaxed mb-4">
+                    <p className="text-sm text-white/60 leading-relaxed mb-4">
                       {whoopConnected
                         ? "We're automatically collecting your sleep data from WHOOP. We need 7 nights to understand your patterns and build your personalised schedule."
                         : "Connect your WHOOP to start tracking sleep automatically. We need 7 nights of data to build your personalised schedule."}
@@ -341,31 +458,27 @@ export function DashboardPage() {
                   </div>
                 )}
 
-                {/* Baseline Progress */}
                 {isBaseline && (
                   <div className="animate-fade-up stagger-2 glass-card rounded-2xl p-5">
                     <div className="flex items-center gap-3 mb-3">
-                      <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                      <div className="h-10 w-10 rounded-xl bg-primary/15 flex items-center justify-center">
                         <TrendingUp className="h-5 w-5 text-primary" />
                       </div>
-                      <h3 className="font-display text-base font-semibold tracking-tight">
+                      <h3 className="font-display text-base font-semibold tracking-tight text-white">
                         Building Your Baseline
                       </h3>
                     </div>
-                    <p className="text-sm text-muted-foreground leading-relaxed mb-4">
-                      We're automatically collecting your sleep data. We need 7 nights
-                      to build your personalised schedule.
+                    <p className="text-sm text-white/60 leading-relaxed mb-4">
+                      Collecting your sleep data — 7 nights needed to build your personalised schedule.
                     </p>
-
-                    {/* Progress bar */}
                     <div className="mb-4">
-                      <div className="flex justify-between text-sm mb-2">
-                        <span className="text-muted-foreground text-xs">Progress</span>
-                        <span className="font-semibold text-xs">
+                      <div className="flex justify-between text-xs mb-2">
+                        <span className="text-white/50">Progress</span>
+                        <span className="font-semibold text-white">
                           {baselineStatus.entriesLogged} of 7 nights
                         </span>
                       </div>
-                      <div className="h-2 bg-muted/60 rounded-full overflow-hidden">
+                      <div className="h-2.5 bg-white/8 rounded-full overflow-hidden">
                         <div
                           className="h-full gradient-primary rounded-full transition-all duration-700 ease-out"
                           style={{
@@ -374,12 +487,7 @@ export function DashboardPage() {
                         />
                       </div>
                     </div>
-
-                    <p className="text-xs text-muted-foreground mb-4">
-                      {baselineStatus.message}
-                    </p>
-
-                    {/* Initialize button when baseline is complete */}
+                    <p className="text-xs text-white/50 mb-4">{baselineStatus.message}</p>
                     {baselineStatus.isComplete && (
                       <Button onClick={handleInitializeSchedule} disabled={isInitializing} className="rounded-xl w-full">
                         {isInitializing && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
@@ -389,57 +497,42 @@ export function DashboardPage() {
                   </div>
                 )}
 
-                {/* ═══════ Sleep Window Hero ═══════ */}
+                {/* ═══════════════════════════════════════
+                    HERO CARD — Blue gradient with metrics
+                    ═══════════════════════════════════════ */}
                 {hasSchedule && schedule && (
-                  <div className="animate-fade-up stagger-1 rounded-2xl overflow-hidden">
-                    <div className="glass-card gradient-card p-5">
-                      {/* Bedtime / Wake row */}
-                      <div className="flex items-center justify-between mb-5">
-                        <div className="flex-1 text-center">
-                          <div className="flex items-center justify-center gap-1.5 mb-1.5">
-                            <Moon className="h-3.5 w-3.5 text-[hsl(260,40%,65%)]" />
-                            <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Bedtime</span>
+                  <div className="animate-fade-up stagger-1 rounded-2xl overflow-hidden" style={{
+                    background: "linear-gradient(145deg, hsl(225 80% 50%) 0%, hsl(240 70% 48%) 50%, hsl(250 65% 42%) 100%)",
+                  }}>
+                    <div className="p-5">
+                      {/* Top row: Efficiency ring + metrics */}
+                      <div className="flex items-center gap-4 mb-4">
+                        <EfficiencyRing
+                          value={schedule.avgSleepEfficiency ?? 0}
+                          size={72}
+                          label="Efficiency"
+                        />
+                        <div className="flex-1 space-y-3">
+                          <div className="flex gap-3">
+                            <div className="flex-1 bg-white/10 rounded-xl px-3 py-2.5">
+                              <p className="text-white font-display font-semibold text-lg leading-tight">
+                                {formatDuration(schedule.timeInBedMins)}
+                              </p>
+                              <p className="text-white/60 text-[10px] font-medium mt-0.5">Time in Bed</p>
+                            </div>
+                            <div className="flex-1 bg-white/10 rounded-xl px-3 py-2.5">
+                              <p className="text-white font-display font-semibold text-lg leading-tight">
+                                {schedule.adherencePercentage !== null ? `${schedule.adherencePercentage}%` : "—"}
+                              </p>
+                              <p className="text-white/60 text-[10px] font-medium mt-0.5">Adherence</p>
+                            </div>
                           </div>
-                          <span className="font-display text-3xl font-semibold tracking-tight">
-                            {formatTimeDisplay(schedule.prescribedBedtime)}
-                          </span>
                         </div>
-
-                        {/* Circular efficiency ring in center */}
-                        {schedule.avgSleepEfficiency !== null && (
-                          <div className="mx-3">
-                            <EfficiencyRing value={schedule.avgSleepEfficiency} size={76} />
-                          </div>
-                        )}
-
-                        <div className="flex-1 text-center">
-                          <div className="flex items-center justify-center gap-1.5 mb-1.5">
-                            <Sun className="h-3.5 w-3.5 text-accent" />
-                            <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Wake</span>
-                          </div>
-                          <span className="font-display text-3xl font-semibold tracking-tight">
-                            {formatTimeDisplay(schedule.prescribedWakeTime)}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Duration + metrics row */}
-                      <div className="flex items-center justify-center gap-6 text-xs text-muted-foreground">
-                        <div className="flex items-center gap-1.5">
-                          <Clock className="h-3 w-3" />
-                          <span>{formatDuration(schedule.timeInBedMins)} in bed</span>
-                        </div>
-                        {schedule.adherencePercentage !== null && (
-                          <div className="flex items-center gap-1.5">
-                            <Target className="h-3 w-3" />
-                            <span>{schedule.adherencePercentage}% adherence</span>
-                          </div>
-                        )}
                       </div>
 
                       {/* Adjustment info */}
                       {schedule.adjustmentMade && schedule.adjustmentMade !== "BASELINE" && (
-                        <div className="flex items-center justify-center gap-2 text-xs mt-3 text-primary">
+                        <div className="flex items-center gap-2 text-xs text-white/80 mb-3">
                           <TrendingUp className="h-3 w-3" />
                           <span className="font-medium">
                             {getAdjustmentDescription(schedule.adjustmentMade, schedule.adjustmentMins)}
@@ -449,31 +542,77 @@ export function DashboardPage() {
 
                       {/* Feedback message */}
                       {schedule.feedbackMessage && (
-                        <div className="mt-4 p-3.5 bg-glass rounded-xl border border-glass">
-                          <p className="text-xs leading-relaxed text-muted-foreground">{schedule.feedbackMessage}</p>
+                        <div className="p-3 bg-white/8 rounded-xl">
+                          <p className="text-xs leading-relaxed text-white/70">{schedule.feedbackMessage}</p>
                         </div>
                       )}
                     </div>
                   </div>
                 )}
 
-                {/* ═══════ Programme / Coach Card ═══════ */}
-                {programme ? (
+                {/* ═══════════════════════════════════════
+                    SLEEP WINDOW — Clock gauge section
+                    ═══════════════════════════════════════ */}
+                {hasSchedule && schedule && (
                   <div className="animate-fade-up stagger-2 glass-card rounded-2xl p-5">
+                    <h3 className="font-display text-base font-semibold tracking-tight text-white mb-4">Your Sleep Window</h3>
+                    <div className="flex items-center justify-between">
+                      {/* Bedtime */}
+                      <div className="text-center flex-1">
+                        <div className="glass-card rounded-xl p-3 inline-block">
+                          <p className="font-display text-2xl font-bold text-white leading-none">
+                            {formatTimeDisplay(schedule.prescribedBedtime)}
+                          </p>
+                          <p className="text-white/50 text-xs font-medium mt-1">
+                            {formatTimePeriod(schedule.prescribedBedtime)}
+                          </p>
+                        </div>
+                        <p className="text-white/40 text-[11px] font-medium mt-2 flex items-center justify-center gap-1">
+                          <Moon className="h-3 w-3" />
+                          Bedtime
+                        </p>
+                      </div>
+
+                      {/* Clock gauge */}
+                      <ClockGauge durationMins={schedule.timeInBedMins} />
+
+                      {/* Wake time */}
+                      <div className="text-center flex-1">
+                        <div className="glass-card rounded-xl p-3 inline-block">
+                          <p className="font-display text-2xl font-bold text-white leading-none">
+                            {formatTimeDisplay(schedule.prescribedWakeTime)}
+                          </p>
+                          <p className="text-white/50 text-xs font-medium mt-1">
+                            {formatTimePeriod(schedule.prescribedWakeTime)}
+                          </p>
+                        </div>
+                        <p className="text-white/40 text-[11px] font-medium mt-2 flex items-center justify-center gap-1">
+                          <Sun className="h-3 w-3" />
+                          Wake Up
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* ═══════════════════════════════════════
+                    PROGRAMME / COACH CARD
+                    ═══════════════════════════════════════ */}
+                {programme ? (
+                  <div className="animate-fade-up stagger-3 glass-card rounded-2xl p-5">
                     <div className="flex items-center gap-3 mb-3">
-                      <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center">
+                      <div className="h-9 w-9 rounded-xl bg-primary/15 flex items-center justify-center">
                         <BookOpen className="h-4 w-4 text-primary" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-sm font-semibold truncate">
+                        <h3 className="text-sm font-semibold text-white truncate">
                           Week {programme.progress.currentWeek} of {programme.totalWeeks}: {programme.topic}
                         </h3>
                       </div>
                     </div>
 
-                    {/* Progress bar */}
                     <div className="mb-4">
-                      <div className="h-1.5 bg-muted/60 rounded-full overflow-hidden">
+                      <div className="h-1.5 bg-white/8 rounded-full overflow-hidden">
                         <div
                           className="h-full gradient-primary rounded-full transition-all duration-500 ease-out"
                           style={{
@@ -481,21 +620,19 @@ export function DashboardPage() {
                           }}
                         />
                       </div>
-                      <p className="text-[11px] text-muted-foreground mt-1.5">
+                      <p className="text-[11px] text-white/40 mt-1.5">
                         {programme.progress.currentWeek} of {programme.totalWeeks} weeks completed
                       </p>
                     </div>
 
-                    {/* Daily nudge */}
-                    <div className="rounded-xl bg-primary/5 border border-primary/8 p-3.5 mb-4">
-                      <p className="text-sm leading-relaxed">{programme.dailyNudge.message}</p>
+                    <div className="rounded-xl bg-primary/8 border border-primary/15 p-3.5 mb-4">
+                      <p className="text-sm leading-relaxed text-white/80">{programme.dailyNudge.message}</p>
                     </div>
 
-                    {/* This week's actions */}
                     <div className="mb-4">
                       <div className="flex items-center justify-between mb-2">
-                        <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">This week's actions</h4>
-                        <span className="text-xs text-muted-foreground font-medium tabular-nums">
+                        <h4 className="text-[11px] font-semibold text-white/40 uppercase tracking-wider">This week's actions</h4>
+                        <span className="text-xs text-white/40 font-medium tabular-nums">
                           {completedActions.size}/{programme.dailyActions.length}
                         </span>
                       </div>
@@ -508,19 +645,19 @@ export function DashboardPage() {
                                 type="button"
                                 onClick={() => toggleAction(action.id)}
                                 className={`flex items-start gap-2.5 w-full text-left p-2.5 rounded-xl transition-all duration-200 ${
-                                  done ? "bg-primary/5" : "hover:bg-muted/40"
+                                  done ? "bg-primary/8" : "hover:bg-white/5"
                                 }`}
                               >
                                 {done ? (
                                   <CheckCircle2 className="h-[18px] w-[18px] text-primary shrink-0 mt-px" />
                                 ) : (
-                                  <Circle className="h-[18px] w-[18px] text-muted-foreground/30 shrink-0 mt-px" />
+                                  <Circle className="h-[18px] w-[18px] text-white/20 shrink-0 mt-px" />
                                 )}
                                 <span
                                   className={`text-sm leading-relaxed transition-colors ${
                                     done
-                                      ? "line-through text-muted-foreground/40"
-                                      : "text-foreground/80"
+                                      ? "line-through text-white/30"
+                                      : "text-white/70"
                                   }`}
                                 >
                                   {action.text}
@@ -532,7 +669,6 @@ export function DashboardPage() {
                       </ul>
                     </div>
 
-                    {/* Talk to Coach button */}
                     <Button asChild className="w-full rounded-xl h-11">
                       <Link to="/chat">
                         <MessageCircle className="h-4 w-4 mr-2" />
@@ -542,14 +678,14 @@ export function DashboardPage() {
                   </div>
                 ) : (
                   hasSchedule && (
-                    <div className="animate-fade-up stagger-2 glass-card rounded-2xl p-5">
+                    <div className="animate-fade-up stagger-3 glass-card rounded-2xl p-5">
                       <div className="flex items-start gap-4">
-                        <div className="h-11 w-11 rounded-2xl bg-primary/10 border border-primary/15 flex items-center justify-center shrink-0 animate-float">
+                        <div className="h-11 w-11 rounded-2xl bg-primary/15 flex items-center justify-center shrink-0 animate-float">
                           <Sparkles className="h-5 w-5 text-primary" />
                         </div>
                         <div className="flex-1">
-                          <h3 className="font-semibold mb-1.5">Your AI Sleep Coach</h3>
-                          <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
+                          <h3 className="font-semibold mb-1.5 text-white">Your AI Sleep Coach</h3>
+                          <p className="text-sm text-white/60 mb-4 leading-relaxed">
                             Get personalised advice based on your real sleep
                             data and CBT-i principles.
                           </p>
@@ -566,38 +702,38 @@ export function DashboardPage() {
                 )}
 
                 {/* Sleep History */}
-                <div className="animate-fade-up stagger-3">
+                <div className="animate-fade-up stagger-4">
                   <SleepHistory />
                 </div>
 
-                {/* Efficiency Chart (post-baseline) */}
+                {/* Efficiency Chart */}
                 {hasSchedule && (
-                  <div className="animate-fade-up stagger-4">
+                  <div className="animate-fade-up stagger-5">
                     <EfficiencyChart />
                   </div>
                 )}
 
-                {/* WHOOP Recovery Card */}
+                {/* WHOOP Recovery */}
                 {hasSchedule && (
-                  <div className="animate-fade-up stagger-5">
+                  <div className="animate-fade-up stagger-6">
                     <RecoveryCard />
                   </div>
                 )}
 
-                {/* Coming Soon cards — show during baseline */}
+                {/* Coming Soon — baseline */}
                 {!hasSchedule && (
                   <div className="space-y-4">
                     <div className="animate-fade-up stagger-3 glass-card rounded-2xl p-5 opacity-50">
                       <div className="flex items-start gap-4">
-                        <div className="h-10 w-10 rounded-xl bg-muted/60 flex items-center justify-center shrink-0">
-                          <CalendarClock className="h-5 w-5 text-muted-foreground" />
+                        <div className="h-10 w-10 rounded-xl bg-white/5 flex items-center justify-center shrink-0">
+                          <CalendarClock className="h-5 w-5 text-white/40" />
                         </div>
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1.5">
-                            <h3 className="font-semibold text-muted-foreground text-sm">Sleep Schedule</h3>
-                            <Lock className="h-3 w-3 text-muted-foreground/50" />
+                            <h3 className="font-semibold text-white/50 text-sm">Sleep Schedule</h3>
+                            <Lock className="h-3 w-3 text-white/30" />
                           </div>
-                          <p className="text-sm text-muted-foreground leading-relaxed">
+                          <p className="text-sm text-white/40 leading-relaxed">
                             Once we have enough data, you'll receive a personalised sleep
                             window designed using CBT-i sleep restriction principles.
                           </p>
@@ -607,15 +743,15 @@ export function DashboardPage() {
 
                     <div className="animate-fade-up stagger-4 glass-card rounded-2xl p-5 opacity-50">
                       <div className="flex items-start gap-4">
-                        <div className="h-10 w-10 rounded-xl bg-muted/60 flex items-center justify-center shrink-0">
-                          <BarChart3 className="h-5 w-5 text-muted-foreground" />
+                        <div className="h-10 w-10 rounded-xl bg-white/5 flex items-center justify-center shrink-0">
+                          <BarChart3 className="h-5 w-5 text-white/40" />
                         </div>
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1.5">
-                            <h3 className="font-semibold text-muted-foreground text-sm">Sleep Trends</h3>
-                            <Lock className="h-3 w-3 text-muted-foreground/50" />
+                            <h3 className="font-semibold text-white/50 text-sm">Sleep Trends</h3>
+                            <Lock className="h-3 w-3 text-white/30" />
                           </div>
-                          <p className="text-sm text-muted-foreground leading-relaxed">
+                          <p className="text-sm text-white/40 leading-relaxed">
                             Track your sleep efficiency over time and see your patterns
                             improve week by week.
                           </p>
@@ -623,7 +759,6 @@ export function DashboardPage() {
                       </div>
                     </div>
 
-                    {/* WHOOP Recovery during baseline — show if connected */}
                     <div className="animate-fade-up stagger-5">
                       <RecoveryCard />
                     </div>

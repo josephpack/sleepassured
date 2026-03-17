@@ -64,7 +64,7 @@ export function EfficiencyChart() {
         <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center">
           <TrendingUp className="h-4 w-4 text-primary" />
         </div>
-        <h3 className="font-display text-base font-semibold tracking-tight">
+        <h3 className="font-display text-base font-semibold tracking-tight text-white">
           Efficiency Trend
         </h3>
       </div>

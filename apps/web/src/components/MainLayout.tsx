@@ -6,10 +6,9 @@ export function MainLayout() {
   return (
     <div className="min-h-screen bg-background gradient-mesh">
       <InstallPrompt />
-      {/* Content area with bottom padding for fixed nav */}
-      <div className="pb-20 pb-safe">
-        <Outlet />
-      </div>
+      <Outlet />
+      {/* Spacer to prevent content from hiding behind fixed nav */}
+      <div style={{ height: "calc(5.5rem + env(safe-area-inset-bottom, 0px))" }} />
       <TabBar />
     </div>
   );
