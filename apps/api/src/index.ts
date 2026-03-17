@@ -87,7 +87,11 @@ app.use("/api/admin", adminRoutes);
 // In production, serve the Vite-built frontend
 if (process.env.NODE_ENV === "production") {
   const webDistPath = path.resolve(__dirname, "../../web/dist");
-  app.use(express.static(webDistPath));
+  app.use(express.static(webDistPath, { index: false }));
+  // Serve landing page at root
+  app.get("/", (_req, res) => {
+    res.sendFile(path.join(webDistPath, "landing.html"));
+  });
   // SPA catch-all: any non-API GET returns index.html for client-side routing
   app.get("*", (_req, res) => {
     res.sendFile(path.join(webDistPath, "index.html"));
