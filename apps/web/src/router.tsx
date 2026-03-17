@@ -1,4 +1,4 @@
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 import { LoginPage } from "@/pages/LoginPage";
 import { SignupPage } from "@/pages/SignupPage";
 import { DashboardPage } from "@/pages/DashboardPage";
@@ -17,6 +17,11 @@ export const router = createBrowserRouter([
     // Root layout with AuthProvider
     element: <AppLayout />,
     children: [
+      {
+        // Redirect root to dashboard (handles service worker fallback)
+        path: "/",
+        element: <Navigate to="/dashboard" replace />,
+      },
       {
         // Public routes (redirect to dashboard if authenticated)
         element: <PublicRoute />,
@@ -66,6 +71,11 @@ export const router = createBrowserRouter([
             element: <AdminUserPage />,
           },
         ],
+      },
+      {
+        // Catch-all: redirect unknown routes to dashboard
+        path: "*",
+        element: <Navigate to="/dashboard" replace />,
       },
     ],
   },
