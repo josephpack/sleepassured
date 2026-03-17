@@ -9,15 +9,15 @@ import {
 } from "@/features/whoop/api/whoop";
 
 function getRecoveryColor(score: number): string {
-  if (score >= 67) return "text-green-500";
-  if (score >= 34) return "text-yellow-500";
-  return "text-red-500";
+  if (score >= 67) return "sa-recovery-green";
+  if (score >= 34) return "sa-recovery-yellow";
+  return "sa-recovery-red";
 }
 
 function getRecoveryBgColor(score: number): string {
-  if (score >= 67) return "bg-green-500/10";
-  if (score >= 34) return "bg-yellow-500/10";
-  return "bg-red-500/10";
+  if (score >= 67) return "sa-recovery-bg-green";
+  if (score >= 34) return "sa-recovery-bg-yellow";
+  return "sa-recovery-bg-red";
 }
 
 function getRecoveryLabel(score: number): string {
@@ -47,9 +47,10 @@ export function RecoveryCard() {
 
   if (isLoading) {
     return (
-      <Card>
-        <CardContent className="flex items-center justify-center py-8">
-          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      <Card className="sa-card">
+        <CardContent className="flex flex-col items-center justify-center py-10">
+          <Loader2 className="h-5 w-5 animate-spin text-primary/40" />
+          <p className="text-xs text-muted-foreground mt-3">Loading recovery...</p>
         </CardContent>
       </Card>
     );
@@ -58,19 +59,19 @@ export function RecoveryCard() {
   // Not connected — direct to settings
   if (!data?.connected) {
     return (
-      <Card>
+      <Card className="sa-card overflow-hidden">
         <CardContent className="pt-6 pb-6">
-          <div className="flex items-start gap-3">
-            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+          <div className="flex items-start gap-4">
+            <div className="h-11 w-11 rounded-xl bg-primary/10 border border-primary/10 flex items-center justify-center shrink-0">
               <Activity className="h-5 w-5 text-primary" />
             </div>
             <div className="flex-1">
-              <h3 className="font-semibold mb-1">WHOOP Recovery</h3>
-              <p className="text-sm text-muted-foreground mb-3 leading-relaxed">
+              <h3 className="font-semibold mb-1.5">WHOOP Recovery</h3>
+              <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
                 Connect your WHOOP to see your recovery score, HRV, and resting
                 heart rate.
               </p>
-              <Button asChild size="sm" variant="outline">
+              <Button asChild size="sm" variant="outline" className="rounded-xl">
                 <Link to="/settings">
                   <Settings className="h-4 w-4 mr-2" />
                   Connect WHOOP in Settings
@@ -86,12 +87,16 @@ export function RecoveryCard() {
   // Show message if connected but no recovery data yet
   if (!data.recovery) {
     return (
-      <Card>
+      <Card className="sa-card overflow-hidden">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Activity className="h-5 w-5 text-primary" />
-            WHOOP Recovery
-          </CardTitle>
+          <div className="flex items-center gap-3">
+            <div className="h-9 w-9 rounded-xl bg-primary/10 border border-primary/10 flex items-center justify-center">
+              <Activity className="h-4 w-4 text-primary" />
+            </div>
+            <CardTitle className="font-display text-lg tracking-tight">
+              WHOOP Recovery
+            </CardTitle>
+          </div>
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground">
@@ -108,19 +113,23 @@ export function RecoveryCard() {
   const label = getRecoveryLabel(score);
 
   return (
-    <Card>
+    <Card className="sa-card overflow-hidden">
       <CardHeader className="pb-2">
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <Activity className="h-5 w-5 text-primary" />
-          WHOOP Recovery
-        </CardTitle>
+        <div className="flex items-center gap-3">
+          <div className="h-9 w-9 rounded-xl bg-primary/10 border border-primary/10 flex items-center justify-center">
+            <Activity className="h-4 w-4 text-primary" />
+          </div>
+          <CardTitle className="font-display text-lg tracking-tight">
+            WHOOP Recovery
+          </CardTitle>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="flex items-center gap-4">
           <div
-            className={`flex h-16 w-16 items-center justify-center rounded-full ${bgColorClass}`}
+            className={`flex h-16 w-16 items-center justify-center rounded-2xl ${bgColorClass} transition-transform hover:scale-105`}
           >
-            <span className={`text-2xl font-bold ${colorClass}`}>{score}%</span>
+            <span className={`font-display text-2xl font-bold ${colorClass}`}>{score}%</span>
           </div>
           <div>
             <p className={`text-lg font-semibold ${colorClass}`}>{label}</p>
@@ -134,12 +143,18 @@ export function RecoveryCard() {
           </div>
         </div>
         {(data.recovery.hrvRmssd || data.recovery.restingHeartRate) && (
-          <div className="mt-4 flex gap-4 text-sm text-muted-foreground">
+          <div className="mt-4 flex gap-4">
             {data.recovery.hrvRmssd && (
-              <span>HRV: {data.recovery.hrvRmssd.toFixed(0)} ms</span>
+              <div className="flex-1 p-3 bg-muted/40 rounded-xl border border-border/30 text-center">
+                <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider">HRV</p>
+                <p className="font-display text-lg font-semibold mt-0.5">{data.recovery.hrvRmssd.toFixed(0)} <span className="text-xs text-muted-foreground font-normal">ms</span></p>
+              </div>
             )}
             {data.recovery.restingHeartRate && (
-              <span>RHR: {data.recovery.restingHeartRate} bpm</span>
+              <div className="flex-1 p-3 bg-muted/40 rounded-xl border border-border/30 text-center">
+                <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider">RHR</p>
+                <p className="font-display text-lg font-semibold mt-0.5">{data.recovery.restingHeartRate} <span className="text-xs text-muted-foreground font-normal">bpm</span></p>
+              </div>
             )}
           </div>
         )}

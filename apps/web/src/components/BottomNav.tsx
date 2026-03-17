@@ -1,8 +1,9 @@
 import { Link, useLocation } from "react-router-dom";
+import { Home, MessageCircle } from "lucide-react";
 
 const tabs = [
-  { to: "/", label: "Home" },
-  { to: "/chat", label: "AI Coach" },
+  { to: "/", label: "Home", icon: Home },
+  { to: "/chat", label: "AI Coach", icon: MessageCircle },
 ] as const;
 
 export function TabBar() {
@@ -10,7 +11,7 @@ export function TabBar() {
 
   return (
     <nav className="flex gap-2 px-4 py-3">
-      {tabs.map(({ to, label }) => {
+      {tabs.map(({ to, label, icon: Icon }) => {
         const isActive =
           to === "/" ? location.pathname === "/" : location.pathname.startsWith(to);
 
@@ -18,12 +19,13 @@ export function TabBar() {
           <Link
             key={to}
             to={to}
-            className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+            className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-all duration-200 ${
               isActive
-                ? "bg-primary text-primary-foreground"
-                : "bg-muted text-muted-foreground"
+                ? "bg-primary text-primary-foreground shadow-sm"
+                : "bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground"
             }`}
           >
+            <Icon className="h-4 w-4" />
             {label}
           </Link>
         );

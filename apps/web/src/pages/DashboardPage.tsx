@@ -181,27 +181,29 @@ export function DashboardPage() {
   const isFirstTime = !isLoading && !hasSchedule && !baselineStatus;
 
   return (
-    <div className="px-4 pb-8 pt-2">
+    <div className="px-4 pb-10 pt-3">
       <div className="mx-auto max-w-4xl">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6 sm:mb-8 gap-2">
-          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-            <h1 className="text-xl sm:text-2xl font-bold truncate">SleepAssured</h1>
+        <div className="flex items-center justify-between mb-8 sa-animate-in">
+          <div className="flex items-center gap-3 min-w-0">
+            <h1 className="font-display text-2xl sm:text-3xl font-semibold tracking-tight truncate">
+              SleepAssured
+            </h1>
             {schedule?.weekNumber && (
-              <span className="rounded-full bg-primary/10 px-2 sm:px-3 py-1 text-xs sm:text-sm font-medium text-primary whitespace-nowrap">
+              <span className="rounded-full bg-primary/10 border border-primary/20 px-3 py-1 text-xs font-medium text-primary whitespace-nowrap">
                 Week {schedule.weekNumber}
               </span>
             )}
           </div>
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-3 shrink-0">
             {user?.name && (
-              <span className="text-sm text-muted-foreground hidden sm:inline">
-                Hi, {user.name.split(" ")[0]}
+              <span className="text-sm text-muted-foreground hidden sm:inline font-medium">
+                {user.name.split(" ")[0]}
               </span>
             )}
-            <Button variant="outline" size="icon" asChild className="h-10 w-10">
+            <Button variant="ghost" size="icon" asChild className="h-10 w-10 rounded-xl hover:bg-primary/5 transition-colors">
               <Link to="/settings">
-                <Settings className="h-4 w-4" />
+                <Settings className="h-[18px] w-[18px] text-muted-foreground" />
               </Link>
             </Button>
           </div>
@@ -209,41 +211,45 @@ export function DashboardPage() {
 
         {/* WHOOP reconnect banner */}
         {needsReauth && (
-          <Card className="mb-6 border-yellow-500/30 bg-yellow-50/50 dark:bg-yellow-950/20">
-            <CardContent className="pt-5 pb-5">
-              <div className="flex items-start gap-3">
-                <AlertTriangle className="h-5 w-5 text-yellow-600 shrink-0 mt-0.5" />
-                <div className="flex-1">
-                  <p className="text-sm font-medium">Your WHOOP connection needs to be refreshed</p>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Sleep data syncing is paused until you reconnect.
-                  </p>
-                </div>
-                <Button variant="outline" size="sm" asChild>
-                  <Link to="/settings">Reconnect</Link>
-                </Button>
+          <div className="mb-6 sa-animate-in sa-stagger-1 rounded-xl border border-amber/30 bg-amber-soft/50 p-4">
+            <div className="flex items-start gap-3">
+              <div className="h-9 w-9 rounded-lg bg-amber/10 flex items-center justify-center shrink-0">
+                <AlertTriangle className="h-4 w-4 text-amber" />
               </div>
-            </CardContent>
-          </Card>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold">WHOOP connection needs refreshing</p>
+                <p className="text-sm text-muted-foreground mt-0.5">
+                  Sleep data syncing is paused until you reconnect.
+                </p>
+              </div>
+              <Button variant="outline" size="sm" asChild className="shrink-0 rounded-lg">
+                <Link to="/settings">Reconnect</Link>
+              </Button>
+            </div>
+          </div>
         )}
 
         {/* Onboarding CTA for users who haven't completed onboarding */}
         {!user?.onboardingCompleted && (
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle>Welcome, {user?.name?.split(" ")[0]}!</CardTitle>
-              <CardDescription>
-                Complete onboarding to start your sleep improvement journey
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button asChild>
-                <Link to="/onboarding">
-                  Complete Onboarding
-                  <ChevronRight className="h-4 w-4 ml-2" />
-                </Link>
-              </Button>
-            </CardContent>
+          <Card className="mb-6 sa-animate-in sa-stagger-1 sa-card overflow-hidden">
+            <div className="sa-gradient-dusk">
+              <CardHeader className="pb-3">
+                <CardTitle className="font-display text-xl">
+                  Welcome, {user?.name?.split(" ")[0]}
+                </CardTitle>
+                <CardDescription className="text-sm">
+                  Complete onboarding to start your sleep improvement journey
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button asChild className="rounded-xl">
+                  <Link to="/onboarding">
+                    Complete Onboarding
+                    <ChevronRight className="h-4 w-4 ml-1.5" />
+                  </Link>
+                </Button>
+              </CardContent>
+            </div>
           </Card>
         )}
 
@@ -251,47 +257,57 @@ export function DashboardPage() {
           <>
             {/* Loading State */}
             {isLoading && (
-              <Card className="mb-6">
-                <CardContent className="flex items-center justify-center py-12">
-                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-                </CardContent>
-              </Card>
+              <div className="flex flex-col items-center justify-center py-20 sa-animate-fade">
+                <div className="relative">
+                  <div className="h-12 w-12 rounded-full border-2 border-primary/20" />
+                  <Loader2 className="h-12 w-12 animate-spin text-primary absolute inset-0" />
+                </div>
+                <p className="text-sm text-muted-foreground mt-4 font-medium">Loading your dashboard...</p>
+              </div>
             )}
 
             {!isLoading && (
-              <>
+              <div className="space-y-5">
                 {/* Hero Card — show during baseline / first-time */}
                 {!hasSchedule && (
-                  <Card className="mb-6 border-primary/20 bg-gradient-to-br from-primary/5 to-background">
-                    <CardContent className="pt-6 pb-6">
-                      <div className="flex items-start gap-3 mb-3">
-                        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                          <Sparkles className="h-5 w-5 text-primary" />
+                  <Card className="sa-card sa-animate-in sa-stagger-1 overflow-hidden border-primary/15">
+                    <div className="sa-gradient-dusk">
+                      <CardContent className="pt-6 pb-6">
+                        <div className="flex items-start gap-4">
+                          <div className="h-11 w-11 rounded-xl bg-primary/10 border border-primary/15 flex items-center justify-center shrink-0 sa-animate-float">
+                            <Sparkles className="h-5 w-5 text-primary" />
+                          </div>
+                          <div>
+                            <h2 className="font-display text-lg font-semibold mb-1.5 tracking-tight">
+                              Your AI Sleep Coach, Powered by Real Data
+                            </h2>
+                            <p className="text-sm text-muted-foreground leading-relaxed">
+                              SleepAssured combines your WHOOP sleep data with AI trained on CBT-i
+                              principles to create a personalised programme to help you overcome
+                              insomnia.
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <h2 className="text-lg font-semibold mb-1">
-                            Your AI Sleep Coach, Powered by Real Data
-                          </h2>
-                          <p className="text-sm text-muted-foreground leading-relaxed">
-                            SleepAssured combines your WHOOP sleep data with AI trained on CBT-i
-                            principles to create a personalised programme to help you overcome
-                            insomnia.
-                          </p>
-                        </div>
-                      </div>
-                    </CardContent>
+                      </CardContent>
+                    </div>
                   </Card>
                 )}
 
                 {/* First-time user — connect WHOOP or waiting for data */}
                 {isFirstTime && (
-                  <Card className="mb-6">
+                  <Card className="sa-card sa-animate-in sa-stagger-2 overflow-hidden">
                     <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Wifi className="h-5 w-5 text-primary" />
-                        {whoopConnected ? "Waiting for Sleep Data" : "Connect WHOOP to Get Started"}
-                      </CardTitle>
-                      <CardDescription>
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-xl bg-primary/10 border border-primary/10 flex items-center justify-center">
+                          <Wifi className="h-5 w-5 text-primary" />
+                        </div>
+                        <div>
+                          <CardTitle className="font-display text-lg tracking-tight">
+                            {whoopConnected ? "Waiting for Sleep Data" : "Connect WHOOP to Get Started"}
+                          </CardTitle>
+                        </div>
+                      </div>
+                      <CardDescription className="mt-2">
                         {whoopConnected
                           ? "We're automatically collecting your sleep data from WHOOP. We need 7 nights to understand your patterns and build your personalised schedule."
                           : "Connect your WHOOP to start tracking sleep automatically. We need 7 nights of data to build your personalised schedule."}
@@ -299,10 +315,10 @@ export function DashboardPage() {
                     </CardHeader>
                     {!whoopConnected && (
                       <CardContent>
-                        <Button asChild size="lg">
+                        <Button asChild size="lg" className="rounded-xl">
                           <Link to="/settings">
                             Connect WHOOP
-                            <ChevronRight className="h-4 w-4 ml-2" />
+                            <ChevronRight className="h-4 w-4 ml-1.5" />
                           </Link>
                         </Button>
                       </CardContent>
@@ -312,13 +328,19 @@ export function DashboardPage() {
 
                 {/* Baseline Progress */}
                 {isBaseline && (
-                  <Card className="mb-6">
+                  <Card className="sa-card sa-animate-in sa-stagger-2 overflow-hidden">
                     <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <TrendingUp className="h-5 w-5 text-primary" />
-                        Building Your Baseline
-                      </CardTitle>
-                      <CardDescription>
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-xl bg-primary/10 border border-primary/10 flex items-center justify-center">
+                          <TrendingUp className="h-5 w-5 text-primary" />
+                        </div>
+                        <div>
+                          <CardTitle className="font-display text-lg tracking-tight">
+                            Building Your Baseline
+                          </CardTitle>
+                        </div>
+                      </div>
+                      <CardDescription className="mt-2">
                         We're automatically collecting your sleep data. We need 7 nights
                         to understand your patterns and build your personalised schedule.
                       </CardDescription>
@@ -326,15 +348,15 @@ export function DashboardPage() {
                     <CardContent>
                       {/* Progress bar */}
                       <div className="mb-4">
-                        <div className="flex justify-between text-sm mb-2">
+                        <div className="flex justify-between text-sm mb-2.5">
                           <span className="text-muted-foreground">Progress</span>
-                          <span className="font-medium">
-                            {baselineStatus.entriesLogged} of 7 nights logged
+                          <span className="font-semibold text-foreground">
+                            {baselineStatus.entriesLogged} of 7 nights
                           </span>
                         </div>
-                        <div className="h-3 bg-muted rounded-full overflow-hidden">
+                        <div className="h-3 bg-muted rounded-full overflow-hidden sa-progress-bar">
                           <div
-                            className="h-full bg-primary transition-all duration-300"
+                            className="h-full bg-primary rounded-full transition-all duration-500 ease-out"
                             style={{
                               width: `${Math.min(100, (baselineStatus.entriesLogged / 7) * 100)}%`,
                             }}
@@ -348,7 +370,7 @@ export function DashboardPage() {
 
                       {/* Initialize button when baseline is complete */}
                       {baselineStatus.isComplete && (
-                        <Button onClick={handleInitializeSchedule} disabled={isInitializing}>
+                        <Button onClick={handleInitializeSchedule} disabled={isInitializing} className="rounded-xl">
                           {isInitializing && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
                           Get My Sleep Schedule
                         </Button>
@@ -359,128 +381,142 @@ export function DashboardPage() {
 
                 {/* Sleep Window Display (post-baseline) */}
                 {hasSchedule && schedule && (
-                  <Card className="mb-6 border-primary/20">
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Clock className="h-5 w-5 text-primary" />
-                        Your Sleep Window
-                      </CardTitle>
-                      <CardDescription>
-                        Follow this schedule for better sleep
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-2 gap-3 sm:gap-6 mb-4">
-                        <div className="text-center p-3 sm:p-4 bg-muted/50 rounded-lg">
-                          <div className="flex items-center justify-center gap-2 text-muted-foreground mb-2">
-                            <Moon className="h-4 w-4" />
-                            <span className="text-sm">Bedtime</span>
+                  <Card className="sa-card sa-animate-in sa-stagger-1 overflow-hidden border-primary/15">
+                    <div className="sa-gradient-dusk">
+                      <CardHeader className="pb-2">
+                        <div className="flex items-center gap-3">
+                          <div className="h-10 w-10 rounded-xl bg-primary/10 border border-primary/10 flex items-center justify-center">
+                            <Clock className="h-5 w-5 text-primary" />
                           </div>
-                          <span className="text-xl sm:text-2xl font-bold">
-                            {formatTimeDisplay(schedule.prescribedBedtime)}
-                          </span>
-                        </div>
-                        <div className="text-center p-3 sm:p-4 bg-muted/50 rounded-lg">
-                          <div className="flex items-center justify-center gap-2 text-muted-foreground mb-2">
-                            <Sun className="h-4 w-4" />
-                            <span className="text-sm">Wake Time</span>
+                          <div>
+                            <CardTitle className="font-display text-lg tracking-tight">
+                              Your Sleep Window
+                            </CardTitle>
+                            <CardDescription className="mt-0.5">
+                              Follow this schedule for better sleep
+                            </CardDescription>
                           </div>
-                          <span className="text-xl sm:text-2xl font-bold">
-                            {formatTimeDisplay(schedule.prescribedWakeTime)}
-                          </span>
                         </div>
-                      </div>
-
-                      <div className="text-center text-sm text-muted-foreground mb-4">
-                        Time in bed: {formatDuration(schedule.timeInBedMins)}
-                      </div>
-
-                      {/* Adjustment info */}
-                      {schedule.adjustmentMade && schedule.adjustmentMade !== "BASELINE" && (
-                        <div className="flex items-center justify-center gap-2 text-sm">
-                          <TrendingUp className="h-4 w-4 text-primary" />
-                          <span>
-                            {getAdjustmentDescription(schedule.adjustmentMade, schedule.adjustmentMins)}
-                          </span>
-                        </div>
-                      )}
-
-                      {/* Feedback message */}
-                      {schedule.feedbackMessage && (
-                        <div className="mt-4 p-4 bg-primary/5 rounded-lg border border-primary/10">
-                          <p className="text-sm">{schedule.feedbackMessage}</p>
-                        </div>
-                      )}
-
-                      {/* Weekly efficiency and adherence */}
-                      {(schedule.avgSleepEfficiency !== null || schedule.adherencePercentage !== null) && (
-                        <div className="mt-4 flex flex-wrap justify-center gap-4 sm:gap-6 text-sm text-muted-foreground">
-                          {schedule.avgSleepEfficiency !== null && (
-                            <div className="flex items-center gap-1">
-                              <TrendingUp className="h-4 w-4" />
-                              <span>
-                                Efficiency:{" "}
-                                <span className="font-medium">
-                                  {schedule.avgSleepEfficiency.toFixed(0)}%
-                                </span>
-                              </span>
+                      </CardHeader>
+                      <CardContent className="pt-4">
+                        <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-5">
+                          <div className="text-center p-4 sm:p-5 bg-card/80 backdrop-blur-sm rounded-xl border border-border/50">
+                            <div className="flex items-center justify-center gap-2 text-muted-foreground mb-2">
+                              <Moon className="h-4 w-4 text-lavender" />
+                              <span className="text-xs font-medium uppercase tracking-wider">Bedtime</span>
                             </div>
-                          )}
-                          {schedule.adherencePercentage !== null && (
-                            <div className="flex items-center gap-1">
-                              <Target className="h-4 w-4" />
-                              <span>
-                                Adherence:{" "}
-                                <span className="font-medium">
-                                  {schedule.adherencePercentage}%
-                                </span>
-                              </span>
+                            <span className="font-display text-2xl sm:text-3xl font-semibold tracking-tight">
+                              {formatTimeDisplay(schedule.prescribedBedtime)}
+                            </span>
+                          </div>
+                          <div className="text-center p-4 sm:p-5 bg-card/80 backdrop-blur-sm rounded-xl border border-border/50">
+                            <div className="flex items-center justify-center gap-2 text-muted-foreground mb-2">
+                              <Sun className="h-4 w-4 text-amber" />
+                              <span className="text-xs font-medium uppercase tracking-wider">Wake</span>
                             </div>
-                          )}
+                            <span className="font-display text-2xl sm:text-3xl font-semibold tracking-tight">
+                              {formatTimeDisplay(schedule.prescribedWakeTime)}
+                            </span>
+                          </div>
                         </div>
-                      )}
-                    </CardContent>
+
+                        <div className="text-center text-sm text-muted-foreground mb-4 font-medium">
+                          {formatDuration(schedule.timeInBedMins)} in bed
+                        </div>
+
+                        {/* Adjustment info */}
+                        {schedule.adjustmentMade && schedule.adjustmentMade !== "BASELINE" && (
+                          <div className="flex items-center justify-center gap-2 text-sm mb-3">
+                            <TrendingUp className="h-4 w-4 text-primary" />
+                            <span className="font-medium">
+                              {getAdjustmentDescription(schedule.adjustmentMade, schedule.adjustmentMins)}
+                            </span>
+                          </div>
+                        )}
+
+                        {/* Feedback message */}
+                        {schedule.feedbackMessage && (
+                          <div className="p-4 bg-card/60 backdrop-blur-sm rounded-xl border border-primary/10">
+                            <p className="text-sm leading-relaxed">{schedule.feedbackMessage}</p>
+                          </div>
+                        )}
+
+                        {/* Weekly efficiency and adherence */}
+                        {(schedule.avgSleepEfficiency !== null || schedule.adherencePercentage !== null) && (
+                          <div className="mt-4 flex flex-wrap justify-center gap-5 sm:gap-8">
+                            {schedule.avgSleepEfficiency !== null && (
+                              <div className="flex items-center gap-2 text-sm">
+                                <div className="h-8 w-8 rounded-lg bg-primary/8 flex items-center justify-center">
+                                  <TrendingUp className="h-3.5 w-3.5 text-primary" />
+                                </div>
+                                <div>
+                                  <p className="text-xs text-muted-foreground">Efficiency</p>
+                                  <p className="font-semibold">{schedule.avgSleepEfficiency.toFixed(0)}%</p>
+                                </div>
+                              </div>
+                            )}
+                            {schedule.adherencePercentage !== null && (
+                              <div className="flex items-center gap-2 text-sm">
+                                <div className="h-8 w-8 rounded-lg bg-primary/8 flex items-center justify-center">
+                                  <Target className="h-3.5 w-3.5 text-primary" />
+                                </div>
+                                <div>
+                                  <p className="text-xs text-muted-foreground">Adherence</p>
+                                  <p className="font-semibold">{schedule.adherencePercentage}%</p>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </CardContent>
+                    </div>
                   </Card>
                 )}
 
                 {/* This Week / AI Coach Card */}
                 {programme ? (
-                  <Card className="mb-6 border-primary/20">
+                  <Card className="sa-card sa-animate-in sa-stagger-2 overflow-hidden">
                     <CardHeader className="pb-3">
-                      <div className="flex items-center gap-2 mb-2">
-                        <BookOpen className="h-5 w-5 text-primary" />
-                        <CardTitle className="text-base">
-                          Week {programme.progress.currentWeek} of {programme.totalWeeks}: {programme.topic}
-                        </CardTitle>
+                      <div className="flex items-center gap-3 mb-1">
+                        <div className="h-9 w-9 rounded-xl bg-primary/10 border border-primary/10 flex items-center justify-center">
+                          <BookOpen className="h-4 w-4 text-primary" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <CardTitle className="text-[15px] font-semibold truncate">
+                            Week {programme.progress.currentWeek} of {programme.totalWeeks}: {programme.topic}
+                          </CardTitle>
+                        </div>
                       </div>
                       {/* Progress bar */}
-                      <div className="w-full">
-                        <div className="h-2 bg-muted rounded-full overflow-hidden">
+                      <div className="w-full mt-2">
+                        <div className="h-1.5 bg-muted rounded-full overflow-hidden">
                           <div
-                            className="h-full bg-primary transition-all duration-300"
+                            className="h-full bg-primary rounded-full transition-all duration-500 ease-out"
                             style={{
                               width: `${(programme.progress.currentWeek / programme.totalWeeks) * 100}%`,
                             }}
                           />
                         </div>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {programme.progress.currentWeek} of {programme.totalWeeks} weeks
+                        <p className="text-xs text-muted-foreground mt-1.5">
+                          {programme.progress.currentWeek} of {programme.totalWeeks} weeks completed
                         </p>
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-4">
                       {/* Daily nudge */}
-                      <div className="rounded-lg bg-primary/5 border border-primary/10 p-3">
+                      <div className="rounded-xl sa-gradient-dusk border border-primary/8 p-4">
                         <p className="text-sm leading-relaxed">{programme.dailyNudge.message}</p>
                       </div>
 
                       {/* This week's actions */}
                       <div>
-                        <h4 className="text-sm font-medium mb-1">This week's actions</h4>
-                        <p className="text-xs text-muted-foreground mb-2">
-                          {completedActions.size} of {programme.dailyActions.length} completed
-                        </p>
-                        <ul className="space-y-2">
+                        <div className="flex items-center justify-between mb-2.5">
+                          <h4 className="text-sm font-semibold">This week's actions</h4>
+                          <span className="text-xs text-muted-foreground font-medium tabular-nums">
+                            {completedActions.size}/{programme.dailyActions.length}
+                          </span>
+                        </div>
+                        <ul className="space-y-1.5">
                           {programme.dailyActions.map((action) => {
                             const done = completedActions.has(action.id);
                             return (
@@ -488,18 +524,20 @@ export function DashboardPage() {
                                 <button
                                   type="button"
                                   onClick={() => toggleAction(action.id)}
-                                  className="flex items-start gap-2 w-full text-left"
+                                  className={`flex items-start gap-2.5 w-full text-left p-2.5 rounded-xl transition-all duration-200 ${
+                                    done ? "bg-primary/4" : "hover:bg-muted/50"
+                                  }`}
                                 >
                                   {done ? (
-                                    <CheckCircle2 className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                                    <CheckCircle2 className="h-[18px] w-[18px] text-primary shrink-0 mt-px" />
                                   ) : (
-                                    <Circle className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
+                                    <Circle className="h-[18px] w-[18px] text-muted-foreground/40 shrink-0 mt-px" />
                                   )}
                                   <span
-                                    className={`text-sm leading-relaxed ${
+                                    className={`text-sm leading-relaxed transition-colors ${
                                       done
-                                        ? "line-through text-muted-foreground/60"
-                                        : "text-muted-foreground"
+                                        ? "line-through text-muted-foreground/50"
+                                        : "text-foreground/80"
                                     }`}
                                   >
                                     {action.text}
@@ -512,7 +550,7 @@ export function DashboardPage() {
                       </div>
 
                       {/* Talk to Coach button */}
-                      <Button asChild className="w-full">
+                      <Button asChild className="w-full rounded-xl h-11">
                         <Link to="/chat">
                           <MessageCircle className="h-4 w-4 mr-2" />
                           Talk to Your Coach
@@ -521,45 +559,47 @@ export function DashboardPage() {
                     </CardContent>
                   </Card>
                 ) : (
-                  <Card className="mb-6 border-primary/20">
-                    <CardContent className="pt-6 pb-6">
-                      <div className="flex items-start gap-3">
-                        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                          <Sparkles className="h-5 w-5 text-primary" />
+                  hasSchedule && (
+                    <Card className="sa-card sa-animate-in sa-stagger-2 overflow-hidden border-primary/10">
+                      <CardContent className="pt-6 pb-6">
+                        <div className="flex items-start gap-4">
+                          <div className="h-11 w-11 rounded-xl bg-primary/10 border border-primary/10 flex items-center justify-center shrink-0 sa-animate-float">
+                            <Sparkles className="h-5 w-5 text-primary" />
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="font-semibold mb-1.5">Your AI Sleep Coach</h3>
+                            <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
+                              Ask questions and get personalised advice based on your real sleep
+                              data and CBT-i principles.
+                            </p>
+                            <Button asChild className="rounded-xl">
+                              <Link to="/chat">
+                                Chat with Your Coach
+                                <ChevronRight className="h-4 w-4 ml-1.5" />
+                              </Link>
+                            </Button>
+                          </div>
                         </div>
-                        <div className="flex-1">
-                          <h3 className="font-semibold mb-1">Your AI Sleep Coach</h3>
-                          <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
-                            Ask questions and get personalised advice based on your real sleep
-                            data and CBT-i principles.
-                          </p>
-                          <Button asChild>
-                            <Link to="/chat">
-                              Chat with Your Coach
-                              <ChevronRight className="h-4 w-4 ml-2" />
-                            </Link>
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                      </CardContent>
+                    </Card>
+                  )
                 )}
 
                 {/* Sleep History (baseline and post-baseline) */}
-                <div className="mb-6">
+                <div className="sa-animate-in sa-stagger-3">
                   <SleepHistory />
                 </div>
 
                 {/* Efficiency Chart (post-baseline) */}
                 {hasSchedule && (
-                  <div className="mb-6">
+                  <div className="sa-animate-in sa-stagger-4">
                     <EfficiencyChart />
                   </div>
                 )}
 
                 {/* WHOOP Recovery Card */}
                 {hasSchedule && (
-                  <div className="mb-6">
+                  <div className="sa-animate-in sa-stagger-5">
                     <RecoveryCard />
                   </div>
                 )}
@@ -567,16 +607,16 @@ export function DashboardPage() {
                 {/* Coming Soon cards — show during baseline */}
                 {!hasSchedule && (
                   <div className="space-y-4">
-                    <Card className="mb-0 opacity-75">
+                    <Card className="sa-card sa-animate-in sa-stagger-3 opacity-60">
                       <CardContent className="pt-6 pb-6">
-                        <div className="flex items-start gap-3">
-                          <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center shrink-0">
+                        <div className="flex items-start gap-4">
+                          <div className="h-10 w-10 rounded-xl bg-muted flex items-center justify-center shrink-0">
                             <CalendarClock className="h-5 w-5 text-muted-foreground" />
                           </div>
                           <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
+                            <div className="flex items-center gap-2 mb-1.5">
                               <h3 className="font-semibold text-muted-foreground">Sleep Schedule</h3>
-                              <Lock className="h-3.5 w-3.5 text-muted-foreground" />
+                              <Lock className="h-3.5 w-3.5 text-muted-foreground/60" />
                             </div>
                             <p className="text-sm text-muted-foreground leading-relaxed">
                               Once we have enough data, you'll receive a personalised sleep
@@ -587,16 +627,16 @@ export function DashboardPage() {
                       </CardContent>
                     </Card>
 
-                    <Card className="mb-0 opacity-75">
+                    <Card className="sa-card sa-animate-in sa-stagger-4 opacity-60">
                       <CardContent className="pt-6 pb-6">
-                        <div className="flex items-start gap-3">
-                          <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center shrink-0">
+                        <div className="flex items-start gap-4">
+                          <div className="h-10 w-10 rounded-xl bg-muted flex items-center justify-center shrink-0">
                             <BarChart3 className="h-5 w-5 text-muted-foreground" />
                           </div>
                           <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
+                            <div className="flex items-center gap-2 mb-1.5">
                               <h3 className="font-semibold text-muted-foreground">Sleep Trends</h3>
-                              <Lock className="h-3.5 w-3.5 text-muted-foreground" />
+                              <Lock className="h-3.5 w-3.5 text-muted-foreground/60" />
                             </div>
                             <p className="text-sm text-muted-foreground leading-relaxed">
                               Track your sleep efficiency over time and see your patterns
@@ -608,12 +648,12 @@ export function DashboardPage() {
                     </Card>
 
                     {/* WHOOP Recovery during baseline — show if connected */}
-                    <div>
+                    <div className="sa-animate-in sa-stagger-5">
                       <RecoveryCard />
                     </div>
                   </div>
                 )}
-              </>
+              </div>
             )}
           </>
         )}
