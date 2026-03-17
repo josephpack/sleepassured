@@ -509,22 +509,22 @@ export function DashboardPage() {
                       <div className="flex items-center gap-4 mb-4">
                         <EfficiencyRing
                           value={schedule.avgSleepEfficiency ?? 0}
-                          size={72}
+                          size={76}
                           label="Efficiency"
                         />
                         <div className="flex-1 space-y-3">
                           <div className="flex gap-3">
-                            <div className="flex-1 bg-white/10 rounded-xl px-3 py-2.5">
-                              <p className="text-white font-display font-semibold text-lg leading-tight">
+                            <div className="flex-1 bg-white/10 rounded-xl px-3.5 py-3">
+                              <p className="text-white font-display font-semibold text-xl leading-tight">
                                 {formatDuration(schedule.timeInBedMins)}
                               </p>
-                              <p className="text-white/60 text-[10px] font-medium mt-0.5">Time in Bed</p>
+                              <p className="text-white/80 text-xs font-medium mt-1">Time in Bed</p>
                             </div>
-                            <div className="flex-1 bg-white/10 rounded-xl px-3 py-2.5">
-                              <p className="text-white font-display font-semibold text-lg leading-tight">
+                            <div className="flex-1 bg-white/10 rounded-xl px-3.5 py-3">
+                              <p className="text-white font-display font-semibold text-xl leading-tight">
                                 {schedule.adherencePercentage !== null ? `${schedule.adherencePercentage}%` : "—"}
                               </p>
-                              <p className="text-white/60 text-[10px] font-medium mt-0.5">Adherence</p>
+                              <p className="text-white/80 text-xs font-medium mt-1">Adherence</p>
                             </div>
                           </div>
                         </div>
@@ -532,8 +532,8 @@ export function DashboardPage() {
 
                       {/* Adjustment info */}
                       {schedule.adjustmentMade && schedule.adjustmentMade !== "BASELINE" && (
-                        <div className="flex items-center gap-2 text-xs text-white/80 mb-3">
-                          <TrendingUp className="h-3 w-3" />
+                        <div className="flex items-center gap-2 text-sm text-white/90 mb-3">
+                          <TrendingUp className="h-3.5 w-3.5" />
                           <span className="font-medium">
                             {getAdjustmentDescription(schedule.adjustmentMade, schedule.adjustmentMins)}
                           </span>
@@ -542,8 +542,8 @@ export function DashboardPage() {
 
                       {/* Feedback message */}
                       {schedule.feedbackMessage && (
-                        <div className="p-3 bg-white/8 rounded-xl">
-                          <p className="text-xs leading-relaxed text-white/70">{schedule.feedbackMessage}</p>
+                        <div className="p-3.5 bg-white/10 rounded-xl">
+                          <p className="text-sm leading-relaxed text-white/90">{schedule.feedbackMessage}</p>
                         </div>
                       )}
                     </div>
