@@ -33,9 +33,9 @@ function Hero() {
           Retrain your brain to sleep.
         </h1>
         <p className="text-lg sm:text-xl text-white/80 max-w-2xl mx-auto mb-10">
-          SleepAssured delivers CBT-i — the gold-standard treatment for
-          insomnia, recommended by the NHS ahead of sleeping pills — as a
-          personalised, data-driven programme on your phone.
+          SleepAssured delivers the most effective treatment for insomnia
+          that exists — recommended by the NHS ahead of sleeping pills — as
+          a personalised, data-driven programme on your phone.
         </p>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           <Button size="lg" className="bg-white text-primary-950 hover:bg-white/90 text-base px-8" asChild>
@@ -86,8 +86,8 @@ function Problem() {
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
             Insomnia isn't caused by a dark room or a wrong pillow. It's a
-            learned pattern — your brain has started associating bed with
-            wakefulness instead of sleep. Until you address that, nothing else
+            learned pattern — your brain has started being alert in bed
+            instead of sleepy. Until you address that, nothing else
             will stick.
           </p>
         </div>
@@ -115,13 +115,13 @@ function HowItWorks() {
       icon: Clock,
       title: "Data-driven sleep schedule",
       description:
-        "Connect your WHOOP or use a manual diary. We calculate a personalised sleep window based on your actual sleep efficiency, then adjust it weekly as you improve.",
+        "Connect your WHOOP or use a manual diary. We calculate a personalised sleep window based on how much of your time in bed you're actually sleeping, then adjust it weekly as you improve.",
     },
     {
       icon: BookOpen,
-      title: "Structured 8-week CBT-i programme",
+      title: "Structured 8-week programme",
       description:
-        "Sleep restriction, stimulus control, cognitive restructuring — delivered week by week at exactly the right time. The same techniques used in NHS sleep clinics.",
+        "Spending less time in bed to rebuild your sleep drive. Retraining your brain to associate bed with sleep. Dealing with the thoughts that keep you awake. Delivered week by week at exactly the right time.",
     },
     {
       icon: MessageCircle,
@@ -181,7 +181,7 @@ function Comparison() {
     {
       label: "Evidence base",
       other: "No science behind the approach",
-      ours: "Built on 30+ years of clinical CBT-i research",
+      ours: "Built on 30+ years of clinical research into insomnia treatment",
     },
     {
       label: "Support",
@@ -299,8 +299,8 @@ function Timeline() {
             What to expect
           </h2>
           <p className="text-muted-foreground max-w-xl mx-auto text-lg">
-            CBT-i is a structured programme. Here's how the weeks typically
-            unfold.
+            The programme follows a structured path. Here's how the weeks
+            typically unfold.
           </p>
         </div>
         <div className="space-y-0">
@@ -341,8 +341,9 @@ function Evidence() {
           Built on evidence, not trends
         </h2>
         <p className="text-muted-foreground max-w-2xl mx-auto text-lg mb-10">
-          CBT-i has over 30 years of clinical research behind it. It's
-          recommended as first-line treatment for chronic insomnia by:
+          The method behind SleepAssured has over 30 years of clinical
+          research behind it. It's recommended as the first treatment to
+          try for chronic insomnia by:
         </p>
         <div className="flex flex-wrap items-center justify-center gap-4 mb-10">
           {endorsements.map((name) => (
@@ -367,14 +368,14 @@ function Evidence() {
 function FAQ() {
   const items = [
     {
-      question: "Is sleep restriction safe?",
+      question: "Is spending less time in bed safe?",
       answer:
-        "Sleep restriction is a core CBT-i technique used in NHS sleep clinics worldwide. It temporarily reduces time in bed to build sleep pressure — you won't be sleep-deprived beyond what you're already experiencing. However, if you have a condition affected by sleepiness (e.g. epilepsy), or you operate heavy machinery, please consult your GP before starting.",
+        "Yes. This technique is used in NHS sleep clinics worldwide. It temporarily reduces time in bed to rebuild your body's need to sleep — you won't be sleep-deprived beyond what you're already experiencing. However, if you have a condition affected by sleepiness (e.g. epilepsy), or you operate heavy machinery, please consult your GP before starting.",
     },
     {
       question: "How is this different from other sleep apps?",
       answer:
-        "Most sleep apps passively track your sleep and offer generic tips. SleepAssured actively retrains your sleep using CBT-i — the same structured programme used in clinical settings. It calculates a personalised sleep schedule from your data, adjusts it weekly, and provides AI coaching grounded in sleep science.",
+        "Most sleep apps passively track your sleep and offer generic tips. SleepAssured actively retrains your sleep using the same structured method used in NHS sleep clinics. It calculates a personalised sleep schedule from your data, adjusts it weekly, and provides coaching grounded in sleep science.",
     },
     {
       question: "Do I need a WHOOP?",
@@ -384,12 +385,12 @@ function FAQ() {
     {
       question: "How long until I see results?",
       answer:
-        "Most people notice meaningful improvements within 2–4 weeks. The first week or two can be tough as sleep pressure builds, but this is temporary and a sign the programme is working. By weeks 3–4, sleep typically consolidates — you'll fall asleep faster and wake less during the night.",
+        "Most people notice meaningful improvements within 2–4 weeks. The first week or two can be tough as your body's need to sleep builds up, but this is temporary and a sign the programme is working. By weeks 3–4, your sleep gets deeper and more solid — you'll fall asleep faster and wake less during the night.",
     },
     {
       question: "Will it work for me?",
       answer:
-        "CBT-i is effective for the vast majority of people with chronic insomnia — clinical trials show improvement rates of 70–80%. It works by addressing the learned patterns that maintain insomnia, regardless of how it started. If your sleep problems are primarily caused by an untreated medical condition (e.g. sleep apnoea), we'd recommend seeing a specialist first.",
+        "This method is effective for the vast majority of people with chronic insomnia — clinical trials show improvement rates of 70–80%. It works by addressing the learned patterns that keep insomnia going, regardless of how it started. If your sleep problems are primarily caused by an untreated medical condition (e.g. sleep apnoea), we'd recommend seeing a specialist first.",
     },
   ];
 

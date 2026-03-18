@@ -197,24 +197,24 @@ export function OnboardingPage() {
   const getSeverityMessage = (score: number) => {
     if (score <= 7)
       return {
-        level: "No clinically significant insomnia",
+        level: "Your sleep looks healthy",
         message:
-          "Your sleep appears healthy. SleepAssured can help you maintain good sleep habits.",
+          "No major issues here. SleepAssured can help you keep it that way.",
       };
     if (score <= 14)
       return {
-        level: "Subthreshold insomnia",
+        level: "Mild sleep difficulties",
         message:
-          "You have some sleep difficulties. CBT-I techniques can help improve your sleep quality.",
+          "You have some sleep difficulties. This programme can help improve how you sleep.",
       };
     if (score <= 21)
       return {
-        level: "Moderate insomnia",
+        level: "Moderate sleep difficulties",
         message:
-          "You're experiencing moderate sleep issues. Our programme is designed to help people like you.",
+          "You're experiencing moderate sleep issues. This programme is designed for exactly this.",
       };
     return {
-      level: "Severe insomnia",
+      level: "Significant sleep difficulties",
       message:
         "You're experiencing significant sleep difficulties. Consider consulting a healthcare provider alongside using our programme.",
     };
@@ -295,8 +295,8 @@ export function OnboardingPage() {
                   {[
                     "A quick assessment to understand your sleep patterns",
                     "Automatic sleep tracking via your WHOOP",
-                    "Personalised sleep schedule based on CBT-I principles",
-                    "Weekly progress tracking and AI coaching",
+                    "Personalised sleep schedule that adjusts as you improve",
+                    "Weekly progress tracking and coaching",
                   ].map((item, i) => (
                     <li key={i} className="flex items-start gap-3 animate-fade-up" style={{ animationDelay: `${0.1 + i * 0.05}s` }}>
                       <div className="h-5 w-5 rounded-md bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
@@ -465,12 +465,12 @@ export function OnboardingPage() {
               </div>
 
               <div className="rounded-xl bg-primary/5 border border-primary/8 p-5 mb-6">
-                <h4 className="font-semibold text-sm mb-2">How CBT-I Works</h4>
+                <h4 className="font-semibold text-sm mb-2">How the programme works</h4>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  We'll start with a calculated bedtime based on your sleep
-                  efficiency. As your sleep improves, we'll gradually adjust
-                  your schedule to increase time in bed while maintaining
-                  quality sleep.
+                  We'll start with a bedtime based on how much of your time
+                  in bed you're actually sleeping. As that improves, we'll
+                  gradually give you more time in bed while keeping your
+                  sleep solid.
                 </p>
               </div>
 

@@ -371,11 +371,11 @@ export function DashboardPage() {
                       </div>
                       <div>
                         <h2 className="font-display text-lg font-semibold mb-1.5 tracking-tight text-foreground">
-                          AI Sleep Coach, Powered by Real Data
+                          Your Sleep Coach, Powered by Real Data
                         </h2>
                         <p className="text-sm text-muted-foreground leading-relaxed">
-                          SleepAssured combines your WHOOP sleep data with AI trained on CBT-i
-                          principles to create a personalised programme.
+                          SleepAssured uses your WHOOP sleep data to build a personalised
+                          programme based on the most effective treatment for insomnia that exists.
                         </p>
                       </div>
                     </div>
@@ -464,7 +464,7 @@ export function DashboardPage() {
                             </p>
                           ) : (
                             <p className="text-sm leading-relaxed text-foreground/80">
-                              Get personalised advice based on your real sleep data and CBT-i principles.
+                              Get personalised advice based on your real sleep data.
                             </p>
                           )}
                           <span className="inline-flex items-center gap-1.5 mt-3 text-xs font-medium text-primary">
@@ -534,9 +534,9 @@ export function DashboardPage() {
                       </div>
 
                       {/* Duration */}
-                      <div className="px-4">
-                        <div className="h-12 w-12 rounded-full border border-border flex items-center justify-center">
-                          <span className="font-display text-sm font-semibold text-foreground">
+                      <div className="px-2">
+                        <div className="h-16 w-16 rounded-full border border-border flex items-center justify-center">
+                          <span className="font-display text-xs font-semibold text-foreground whitespace-nowrap">
                             {formatDuration(schedule.timeInBedMins)}
                           </span>
                         </div>
@@ -613,8 +613,9 @@ export function DashboardPage() {
                             <Lock className="h-3 w-3 text-muted-foreground/50" />
                           </div>
                           <p className="text-sm text-muted-foreground leading-relaxed">
-                            Once we have enough data, you'll receive a personalised sleep
-                            window designed using CBT-i sleep restriction principles.
+                            Once we have enough data, you'll get a personalised sleep
+                            window — a specific bedtime and wake time designed to rebuild
+                            your sleep.
                           </p>
                         </div>
                       </div>
@@ -631,8 +632,8 @@ export function DashboardPage() {
                             <Lock className="h-3 w-3 text-muted-foreground/50" />
                           </div>
                           <p className="text-sm text-muted-foreground leading-relaxed">
-                            Track your sleep efficiency over time and see your patterns
-                            improve week by week.
+                            Track how much of your time in bed you're actually sleeping,
+                            and see your patterns improve week by week.
                           </p>
                         </div>
                       </div>

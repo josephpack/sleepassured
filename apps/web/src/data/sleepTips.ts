@@ -11,14 +11,14 @@ export const sleepTips: SleepTip[] = [
     id: 1,
     title: "Keep it cool",
     content:
-      "Your bedroom temperature should be between 16-18°C (60-65°F). A cool room helps your body naturally lower its core temperature, which signals it's time to sleep.",
+      "Your bedroom should be between 16-18°C (60-65°F). A cool room helps your body drop its core temperature, which is one of the signals that it's time to sleep.",
     category: "environment",
   },
   {
     id: 2,
     title: "Embrace the dark",
     content:
-      "Make your bedroom as dark as possible. Even small amounts of light can disrupt melatonin production. Consider blackout curtains or a sleep mask.",
+      "Make your bedroom as dark as possible. Even small amounts of light can tell your brain it's time to be awake. Consider blackout curtains or a sleep mask.",
     category: "environment",
   },
   {
@@ -32,7 +32,7 @@ export const sleepTips: SleepTip[] = [
     id: 4,
     title: "Reserve your bed for sleep",
     content:
-      "Your bed should be associated with sleep (and intimacy) only. Working, watching TV, or scrolling on your phone in bed weakens the mental connection between bed and sleep.",
+      "Your bed should be for sleep (and intimacy) only. Working, watching TV, or scrolling in bed trains your brain to be alert there instead of sleepy.",
     category: "stimulus-control",
   },
 
@@ -48,7 +48,7 @@ export const sleepTips: SleepTip[] = [
     id: 6,
     title: "Limit alcohol before bed",
     content:
-      "While alcohol might help you fall asleep, it disrupts sleep quality and REM cycles later in the night. Try to avoid alcohol within 3 hours of bedtime.",
+      "Alcohol might help you fall asleep, but it breaks up your sleep later in the night. You'll sleep lighter and wake more. Try to avoid it within 3 hours of bedtime.",
     category: "habits",
   },
   {
@@ -69,7 +69,7 @@ export const sleepTips: SleepTip[] = [
     id: 9,
     title: "Limit screen time",
     content:
-      "The blue light from phones, tablets, and computers can suppress melatonin. Try to avoid screens for at least 30 minutes before bed, or use night mode settings.",
+      "The light from phones, tablets, and computers tells your brain it's daytime. Try to avoid screens for at least 30 minutes before bed, or use night mode settings.",
     category: "habits",
   },
 
@@ -78,14 +78,14 @@ export const sleepTips: SleepTip[] = [
     id: 10,
     title: "Wake up at the same time daily",
     content:
-      "Consistency is key for your body clock. Waking at the same time every day, even on weekends, helps regulate your circadian rhythm and improve sleep quality.",
+      "Consistency is key. Waking at the same time every day — even on weekends — keeps your body clock regular and makes it easier to fall asleep at the right time.",
     category: "timing",
   },
   {
     id: 11,
     title: "Get morning light exposure",
     content:
-      "Expose yourself to bright light within an hour of waking. This helps reset your circadian rhythm and makes it easier to feel sleepy at the right time.",
+      "Get bright light within an hour of waking. This resets your body clock and makes it easier to feel sleepy at the right time in the evening.",
     category: "timing",
   },
   {
@@ -99,7 +99,7 @@ export const sleepTips: SleepTip[] = [
     id: 13,
     title: "Avoid long naps",
     content:
-      "If you need to nap, keep it under 30 minutes and before 3pm. Longer or later naps can reduce your sleep drive and make it harder to fall asleep at night.",
+      "If you need to nap, keep it under 30 minutes and before 3pm. Longer or later naps eat into your body's need to sleep and make it harder to nod off at night.",
     category: "timing",
   },
 
@@ -108,7 +108,7 @@ export const sleepTips: SleepTip[] = [
     id: 14,
     title: "Only go to bed when sleepy",
     content:
-      "If you're not feeling sleepy, don't go to bed just because it's 'bedtime'. Wait until you feel genuinely drowsy to strengthen the bed-sleep association.",
+      "If you're not feeling sleepy, don't go to bed just because it's 'bedtime'. Wait until you're genuinely drowsy — heavy eyelids, head nodding. This trains your brain that bed means sleep.",
     category: "stimulus-control",
   },
   {
@@ -136,9 +136,9 @@ export const sleepTips: SleepTip[] = [
   },
   {
     id: 18,
-    title: "Practice relaxation techniques",
+    title: "Try a tense-and-release exercise",
     content:
-      "Deep breathing, progressive muscle relaxation, or meditation can help calm your nervous system and prepare your body for sleep.",
+      "Deep breathing, tensing and releasing each muscle group, or meditation can help calm your body down and prepare it for sleep.",
     category: "mindset",
   },
   {

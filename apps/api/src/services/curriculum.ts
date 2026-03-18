@@ -83,13 +83,13 @@ const INTENT_GUIDANCE: Record<IntentId, string> = {
 const CURRICULUM: WeekCurriculum[] = [
   {
     weekNumber: 1,
-    topic: "Sleep restriction: how and why it works",
+    topic: "Your new sleep window",
     summary:
-      "Your sleep window has been calculated from your baseline data. This week is about understanding why a shorter window leads to better sleep — it builds sleep pressure (Process S) so you fall asleep faster and stay asleep longer. It will feel tough, but the discomfort is the mechanism working.",
+      "Your sleep window has been calculated from your baseline data. This week is about understanding why a shorter window leads to better sleep. Think of sleep like hunger — the longer you go without it, the stronger the urge becomes. A shorter window builds that hunger so you fall asleep faster and stay asleep longer. It will feel tough, but the discomfort is the method working.",
     dailyActions: [
       { id: "w1_a1", text: "Set one alarm for your prescribed wake time. No snooze." },
       { id: "w1_a2", text: "Do not get into bed until your prescribed bedtime — not a minute earlier." },
-      { id: "w1_a3", text: "Avoid napping, even if you feel exhausted. The tiredness is building sleep pressure." },
+      { id: "w1_a3", text: "Avoid napping, even if you feel exhausted. The tiredness is building your body's need to sleep — that's what makes tonight better." },
       { id: "w1_a4", text: "Log your sleep diary every morning — it takes 2 minutes and drives your programme." },
     ],
     commonConcerns: [
@@ -114,9 +114,9 @@ const CURRICULUM: WeekCurriculum[] = [
   },
   {
     weekNumber: 2,
-    topic: "Stimulus control: retraining bed = sleep",
+    topic: "Retraining your brain: bed means sleep",
     summary:
-      "This week focuses on breaking the association between bed and wakefulness. If you have been lying awake in bed, your brain has learnt that bed means 'think, worry, be alert'. Stimulus control retrains it: bed means sleep. Get up if you cannot sleep, return when sleepy.",
+      "This week is about breaking the link between bed and being awake. If you've been lying awake in bed, your brain has learnt that bed means 'think, worry, be alert' — the same way some people tense up around dogs even when they're friendly. It's a learned response, and it can be unlearned. The rule is simple: get up if you can't sleep, return when sleepy.",
     dailyActions: [
       { id: "w2_a1", text: "Only get into bed when you feel genuinely sleepy — not just tired." },
       { id: "w2_a2", text: "If you are awake for roughly 20 minutes, get up and sit somewhere calm in dim light. Return when sleepy." },
@@ -146,9 +146,9 @@ const CURRICULUM: WeekCurriculum[] = [
   },
   {
     weekNumber: 3,
-    topic: "Surviving the dip: it gets worse before better",
+    topic: "The dip: it gets worse before it gets better",
     summary:
-      "If you are feeling more tired than before you started, that is expected. Weeks 2–3 are typically the hardest. Your body is adjusting to the compressed sleep window, and the increased daytime tiredness IS the sleep pressure building. This discomfort is temporary and functional — it drives the consolidation that comes next.",
+      "If you're feeling more tired than before you started, that is expected. This is normal. It means the method is working, not failing. Weeks 2–3 are typically the hardest. Your body is adjusting to the shorter sleep window, and the tiredness during the day IS your body's need to sleep building up. This is temporary — it drives the deeper, more solid sleep that comes next.",
     dailyActions: [
       { id: "w3_a1", text: "Keep following your schedule even though it is hard. Consistency now pays off soon." },
       { id: "w3_a2", text: "Plan a rewarding activity for the time between dinner and bedtime — something you enjoy." },
@@ -178,9 +178,9 @@ const CURRICULUM: WeekCurriculum[] = [
   },
   {
     weekNumber: 4,
-    topic: "The sleep effort paradox",
+    topic: "Stop trying to sleep",
     summary:
-      "The more you try to sleep, the harder it becomes. Sleep is involuntary — like digestion. You can create the conditions for it, but you cannot force it. This week is about recognising when you are 'working' at sleep (clock-watching, rigid routines done anxiously, scoring your night) and learning to let go within the structure.",
+      "The more you try to sleep, the harder it becomes. Sleep is involuntary — like digestion. You can create the conditions for it, but you can't force it. This week is about noticing when you're 'working' at sleep — clock-watching, anxious routines, scoring your night first thing — and learning to let go. The programme handles the structure. Your job is just to follow it.",
     dailyActions: [
       { id: "w4_a1", text: "Remove or turn around any visible clocks in the bedroom." },
       { id: "w4_a2", text: "Resist checking your WHOOP or sleep score first thing — notice how you actually feel instead." },
@@ -210,9 +210,9 @@ const CURRICULUM: WeekCurriculum[] = [
   },
   {
     weekNumber: 5,
-    topic: "Breaking unhelpful sleep beliefs",
+    topic: "Challenging what you believe about sleep",
     summary:
-      "Many people hold beliefs about sleep that actually make insomnia worse — 'I need 8 hours to function', 'A bad night ruins the next day', 'I have always been a bad sleeper'. This week is about noticing these beliefs and testing them against your actual experience. Sleep need varies (6–9 hours), and your body is better at coping than you think.",
+      "Many people hold beliefs about sleep that actually make insomnia worse — 'I need 8 hours to function', 'A bad night ruins the next day', 'I've always been a bad sleeper'. This week is about noticing those beliefs and testing them against what actually happens. Sleep needs vary (6–9 hours is normal), and your body is better at coping than you think.",
     dailyActions: [
       { id: "w5_a1", text: "After a night you rate as 'bad', notice how the day actually goes — not how you expect it to go." },
       { id: "w5_a2", text: "Write down one belief you hold about your sleep. Ask: where did this come from? Is it still true?" },
@@ -274,9 +274,9 @@ const CURRICULUM: WeekCurriculum[] = [
   },
   {
     weekNumber: 7,
-    topic: "Reframing progress: quality over quantity",
+    topic: "Quality matters more than hours",
     summary:
-      "Many people measure sleep success by hours alone. But sleep quality — falling asleep quickly, staying asleep, waking refreshed — matters more than raw quantity. This week is about shifting your definition of 'good sleep' from a number to a feeling. Your nervous system is relearning that bed means sleep — that is a real, lasting change.",
+      "Many people measure sleep success by hours alone. But how you sleep — falling asleep quickly, staying asleep, waking up feeling rested — matters more than how long you sleep. This week is about shifting your definition of 'good sleep' from a number to a feeling. Your brain is relearning that bed means sleep. That's a real, lasting change.",
     dailyActions: [
       { id: "w7_a1", text: "Rate how rested you feel on waking, before checking any data or scores." },
       { id: "w7_a2", text: "Notice three things that are easier or better in your day compared to when you started." },
