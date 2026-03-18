@@ -19,13 +19,28 @@ type RequestOptions = {
 
 let getAccessToken: () => string | null = () => null;
 let onUnauthorized: () => void = () => {};
+let onRefreshToken: () => Promise<string | null> = async () => null;
+
+// Dedup concurrent refresh attempts so multiple 401s don't race
+let refreshPromise: Promise<string | null> | null = null;
 
 export function setAuthHandlers(
   tokenGetter: () => string | null,
-  unauthorizedHandler: () => void
+  unauthorizedHandler: () => void,
+  refreshHandler: () => Promise<string | null>
 ) {
   getAccessToken = tokenGetter;
   onUnauthorized = unauthorizedHandler;
+  onRefreshToken = refreshHandler;
+}
+
+function silentRefresh(): Promise<string | null> {
+  if (!refreshPromise) {
+    refreshPromise = onRefreshToken().finally(() => {
+      refreshPromise = null;
+    });
+  }
+  return refreshPromise;
 }
 
 export async function api<T>(
@@ -50,7 +65,29 @@ export async function api<T>(
   });
 
   if (!response.ok) {
-    if (response.status === 401) {
+    // On 401 for non-auth endpoints, try a silent refresh + retry once
+    if (response.status === 401 && !endpoint.startsWith("/auth/")) {
+      const newToken = await silentRefresh();
+      if (newToken) {
+        // Retry the original request with the fresh token
+        const retryHeaders = { ...headers, Authorization: `Bearer ${newToken}` };
+        const retryResponse = await fetch(`${API_BASE}${endpoint}`, {
+          method,
+          headers: { "Content-Type": "application/json", ...retryHeaders },
+          body: body ? JSON.stringify(body) : undefined,
+          credentials: "include",
+        });
+        if (retryResponse.ok) {
+          return retryResponse.json();
+        }
+        // Retry also failed — if still 401, session is truly gone
+        if (retryResponse.status === 401) {
+          onUnauthorized();
+        }
+        const retryError = await retryResponse.json().catch(() => ({ error: "Request failed" }));
+        throw new ApiError(retryResponse.status, retryError.error || "Request failed", retryError.details);
+      }
+      // Refresh failed — redirect to login
       onUnauthorized();
     }
 

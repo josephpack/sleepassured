@@ -6,7 +6,7 @@ import {
   useCallback,
   ReactNode,
 } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   User,
   AuthResponse,
@@ -16,6 +16,8 @@ import {
   refreshAccessToken,
   getCurrentUser,
   clearStoredRefreshToken,
+  getLastRoute,
+  clearLastRoute,
   LoginRequest,
   SignupRequest,
 } from "@/features/auth/api/auth";
@@ -40,18 +42,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleUnauthorized = useCallback(() => {
     setUser(null);
     setAccessToken(null);
     clearStoredRefreshToken();
+    clearLastRoute();
     navigate("/login");
   }, [navigate]);
 
-  // Set up auth handlers for API client
+  // Refresh handler for the API client's 401 retry mechanism.
+  // Returns the new access token on success, null on failure.
+  const handleRefreshForApi = useCallback(async (): Promise<string | null> => {
+    try {
+      const { accessToken: newToken } = await refreshAccessToken();
+      setAccessToken(newToken);
+      return newToken;
+    } catch {
+      return null;
+    }
+  }, []);
+
+  // Set up auth handlers for API client (token getter + unauthorized redirect + silent refresh)
   useEffect(() => {
-    setAuthHandlers(() => accessToken, handleUnauthorized);
-  }, [accessToken, handleUnauthorized]);
+    setAuthHandlers(() => accessToken, handleUnauthorized, handleRefreshForApi);
+  }, [accessToken, handleUnauthorized, handleRefreshForApi]);
 
   // Refresh access token
   const refreshToken = useCallback(async (): Promise<boolean> => {
@@ -75,6 +91,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (refreshed) {
           const { user: currentUser } = await getCurrentUser();
           setUser(currentUser);
+
+          // Restore last route on PWA relaunch (only if we're on the default start page)
+          const savedRoute = getLastRoute();
+          if (
+            savedRoute &&
+            savedRoute !== location.pathname &&
+            (location.pathname === "/dashboard" || location.pathname === "/")
+          ) {
+            navigate(savedRoute, { replace: true });
+          }
         }
       } catch {
         setUser(null);
@@ -85,7 +111,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     initAuth();
-  }, [refreshToken]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only run on mount
+  }, []);
 
   // Set up token refresh interval
   useEffect(() => {
@@ -131,6 +158,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(null);
       setAccessToken(null);
       clearStoredRefreshToken();
+      clearLastRoute();
       navigate("/login");
     }
   }, [navigate]);

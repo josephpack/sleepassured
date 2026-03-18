@@ -12,7 +12,7 @@ export const authRateLimiter = rateLimit({
 
 export const refreshRateLimiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute
-  max: isTest ? 1000 : 5, // Disable effective rate limiting in tests
+  max: isTest ? 1000 : 10, // Disable effective rate limiting in tests
   message: { error: "Too many refresh attempts, please try again later" },
   standardHeaders: true,
   legacyHeaders: false,

@@ -1,10 +1,19 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { saveLastRoute } from "@/features/auth/api/auth";
 import { Loader2 } from "lucide-react";
+import { useEffect } from "react";
 
 export function ProtectedRoute() {
   const { isAuthenticated, isLoading, user } = useAuth();
   const location = useLocation();
+
+  // Persist the current route so we can restore it on PWA relaunch
+  useEffect(() => {
+    if (isAuthenticated && location.pathname !== "/onboarding") {
+      saveLastRoute(location.pathname);
+    }
+  }, [isAuthenticated, location.pathname]);
 
   if (isLoading) {
     return (
