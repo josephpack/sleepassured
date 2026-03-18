@@ -1,9 +1,10 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, MessageCircle, Settings } from "lucide-react";
+import { Home, MessageCircle, BarChart3, Settings } from "lucide-react";
 
 const tabs = [
   { to: "/dashboard", label: "Home", icon: Home },
-  { to: "/chat", label: "Coach", icon: MessageCircle, elevated: true },
+  { to: "/chat", label: "Coach", icon: MessageCircle },
+  { to: "/dashboard", label: "Progress", icon: BarChart3 }, // TODO: Progress page — link to /progress when built
   { to: "/settings", label: "Settings", icon: Settings },
 ] as const;
 
@@ -11,61 +12,40 @@ export function TabBar() {
   const location = useLocation();
 
   return (
-    <nav className="fixed bottom-0 inset-x-0 z-50 glass-nav pb-safe">
-      <div className="flex items-end justify-around px-6 pt-2 pb-2 max-w-lg mx-auto">
-        {tabs.map(({ to, label, icon: Icon, ...rest }) => {
-          const elevated = "elevated" in rest && rest.elevated;
-          const isActive = location.pathname.startsWith(to);
-
-          if (elevated) {
-            return (
-              <Link
-                key={to}
-                to={to}
-                className="flex flex-col items-center -mt-5 group"
-              >
-                <div
-                  className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300 shadow-lg ${
-                    isActive
-                      ? "gradient-primary glow-primary scale-105"
-                      : "bg-primary/80 hover:bg-primary group-hover:scale-105"
-                  }`}
-                >
-                  <Icon className="h-6 w-6 text-white" />
-                </div>
-                <span
-                  className={`text-[10px] mt-1 font-medium transition-colors ${
-                    isActive ? "text-primary" : "text-muted-foreground"
-                  }`}
-                >
-                  {label}
-                </span>
-              </Link>
-            );
-          }
+    <nav className="fixed bottom-0 inset-x-0 z-50 surface-nav pb-safe">
+      <div className="flex items-center justify-around px-4 pt-2 pb-2 max-w-lg mx-auto">
+        {tabs.map(({ to, label, icon: Icon }) => {
+          const isActive =
+            label === "Progress"
+              ? false // Progress tab is not active until the page exists
+              : location.pathname.startsWith(to);
 
           return (
             <Link
-              key={to}
+              key={label}
               to={to}
-              className="flex flex-col items-center py-1 group"
+              className="flex flex-col items-center py-1 group min-w-[3.5rem]"
             >
-              <div
-                className={`p-2 rounded-xl transition-all duration-200 ${
+              <Icon
+                className={`h-5 w-5 transition-colors duration-200 ${
                   isActive
-                    ? "text-primary bg-primary/10"
+                    ? "text-primary"
                     : "text-muted-foreground group-hover:text-foreground"
                 }`}
-              >
-                <Icon className="h-5 w-5" />
-              </div>
+              />
               <span
-                className={`text-[10px] mt-0.5 font-medium transition-colors ${
+                className={`text-[10px] mt-1 font-medium transition-colors ${
                   isActive ? "text-primary" : "text-muted-foreground"
                 }`}
               >
                 {label}
               </span>
+              {/* Active indicator pip */}
+              <div
+                className={`h-1 w-1 rounded-full mt-0.5 transition-all duration-200 ${
+                  isActive ? "bg-primary scale-100" : "bg-transparent scale-0"
+                }`}
+              />
             </Link>
           );
         })}

@@ -1,12 +1,39 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Send, BookOpen, Moon } from "lucide-react";
+import { Send, BookOpen, Sparkles } from "lucide-react";
 import {
   sendChatMessage,
   getQuickReplies,
   ChatMessage,
   QuickReply,
 } from "./api";
+
+function CoachAvatar() {
+  return (
+    <div className="h-8 w-8 rounded-full bg-primary/12 border border-primary/15 flex items-center justify-center">
+      <Sparkles className="h-4 w-4 text-primary" />
+    </div>
+  );
+}
+
+function EmptyStateIllustration() {
+  return (
+    <svg width="64" height="64" viewBox="0 0 64 64" fill="none" className="mx-auto">
+      {/* Warm sparkle/plant motif */}
+      <circle cx="32" cy="32" r="28" fill="hsla(16,52%,62%,0.06)" />
+      <circle cx="32" cy="32" r="18" fill="hsla(16,52%,62%,0.08)" />
+      {/* Sparkle */}
+      <path
+        d="M32 18 L34 28 L44 30 L34 32 L32 42 L30 32 L20 30 L30 28 Z"
+        fill="hsla(16,52%,62%,0.35)"
+      />
+      {/* Small dots */}
+      <circle cx="20" cy="20" r="1.5" fill="hsla(16,40%,72%,0.3)" />
+      <circle cx="44" cy="22" r="1" fill="hsla(16,40%,72%,0.25)" />
+      <circle cx="46" cy="42" r="1.2" fill="hsla(16,40%,72%,0.2)" />
+    </svg>
+  );
+}
 
 export function ChatPage() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -101,7 +128,7 @@ export function ChatPage() {
   return (
     <div className="flex flex-col h-screen bg-background">
       {/* Header */}
-      <div className="flex items-center gap-3 px-4 py-3 glass-nav animate-fade-in">
+      <div className="flex items-center gap-3 px-4 py-3 surface-nav animate-fade-in">
         <div className="flex-1 min-w-0">
           <h1 className="font-display text-lg font-semibold tracking-tight">Sleep Coach</h1>
           {/* Week context banner */}
@@ -114,9 +141,7 @@ export function ChatPage() {
             </div>
           )}
         </div>
-        <div className="h-8 w-8 rounded-full bg-primary/10 border border-primary/15 flex items-center justify-center">
-          <span className="text-sm">&#10022;</span>
-        </div>
+        <CoachAvatar />
       </div>
 
       {/* Messages Area */}
@@ -126,9 +151,7 @@ export function ChatPage() {
           {messages.length === 0 && (
             <div className="flex flex-col items-center justify-center min-h-[55vh] text-center px-4 animate-fade-up">
               <div className="relative mb-6">
-                <div className="w-16 h-16 rounded-2xl bg-primary/8 border border-primary/12 flex items-center justify-center animate-float">
-                  <Moon className="h-7 w-7 text-primary/70" />
-                </div>
+                <EmptyStateIllustration />
               </div>
               {weekContext?.weekNumber && weekContext?.topic ? (
                 <>
@@ -228,7 +251,7 @@ export function ChatPage() {
       )}
 
       {/* Input Area */}
-      <div className={`border-t border-border/30 glass-nav p-4 pb-3 ${messages.length > 0 && quickReplies.length > 0 ? "border-t-0 pt-2" : ""}`}>
+      <div className={`border-t border-border/30 surface-nav p-4 pb-3 ${messages.length > 0 && quickReplies.length > 0 ? "border-t-0 pt-2" : ""}`}>
         <div className="max-w-2xl mx-auto">
           <div className="flex items-end gap-2.5 bg-muted/40 border border-border/40 rounded-2xl px-4 py-2.5 transition-colors focus-within:border-primary/30 focus-within:bg-muted/60">
             <textarea

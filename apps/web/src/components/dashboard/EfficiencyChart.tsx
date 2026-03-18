@@ -47,7 +47,7 @@ export function EfficiencyChart() {
 
   if (isLoading) {
     return (
-      <div className="glass-card rounded-2xl flex flex-col items-center justify-center py-14">
+      <div className="surface-card rounded-2xl flex flex-col items-center justify-center py-14">
         <Loader2 className="h-5 w-5 animate-spin text-primary/40" />
         <p className="text-xs text-muted-foreground mt-3">Loading trends...</p>
       </div>
@@ -59,12 +59,12 @@ export function EfficiencyChart() {
   }
 
   return (
-    <div className="glass-card rounded-2xl p-5">
+    <div className="surface-card rounded-2xl p-5">
       <div className="flex items-center gap-3 mb-4">
         <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center">
           <TrendingUp className="h-4 w-4 text-primary" />
         </div>
-        <h3 className="font-display text-base font-semibold tracking-tight text-white">
+        <h3 className="font-display text-base font-semibold tracking-tight text-foreground">
           Efficiency Trend
         </h3>
       </div>
@@ -77,18 +77,18 @@ export function EfficiencyChart() {
           >
             <CartesianGrid
               strokeDasharray="3 3"
-              stroke="hsla(220, 40%, 100%, 0.06)"
+              stroke="hsla(33, 20%, 100%, 0.06)"
               vertical={false}
             />
             <XAxis
               dataKey="week"
-              tick={{ fontSize: 11, fill: "hsl(220 15% 55%)" }}
+              tick={{ fontSize: 11, fill: "hsl(33 15% 55%)" }}
               tickLine={false}
               axisLine={false}
             />
             <YAxis
               domain={[0, 100]}
-              tick={{ fontSize: 11, fill: "hsl(220 15% 55%)" }}
+              tick={{ fontSize: 11, fill: "hsl(33 15% 55%)" }}
               tickLine={false}
               axisLine={false}
               tickFormatter={(value) => `${value}%`}
@@ -98,7 +98,7 @@ export function EfficiencyChart() {
                 if (active && payload && payload.length) {
                   const value = payload[0]?.value as number;
                   return (
-                    <div className="glass-strong rounded-xl p-3 shadow-lg">
+                    <div className="surface-elevated rounded-xl p-3 shadow-lg">
                       <p className="text-sm font-semibold">
                         {payload[0]?.payload?.week}
                       </p>
@@ -114,10 +114,10 @@ export function EfficiencyChart() {
             <Line
               type="monotone"
               dataKey="efficiency"
-              stroke="hsl(225 85% 60%)"
+              stroke="hsl(16 52% 62%)"
               strokeWidth={2.5}
-              dot={{ fill: "hsl(225 85% 60%)", strokeWidth: 0, r: 4 }}
-              activeDot={{ r: 6, fill: "hsl(225 85% 60%)", stroke: "hsl(222 47% 6%)", strokeWidth: 2 }}
+              dot={{ fill: "hsl(16 52% 62%)", strokeWidth: 0, r: 4 }}
+              activeDot={{ r: 6, fill: "hsl(16 52% 62%)", stroke: "hsl(30 8% 7%)", strokeWidth: 2 }}
             />
           </LineChart>
         </ResponsiveContainer>

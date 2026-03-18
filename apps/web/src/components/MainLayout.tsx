@@ -1,8 +1,21 @@
+import { useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import { InstallPrompt } from "./InstallPrompt";
 import { TabBar } from "./BottomNav";
 
+function updateNightMode() {
+  const hour = new Date().getHours();
+  const isNight = hour >= 21 || hour < 8;
+  document.body.classList.toggle("night-mode", isNight);
+}
+
 export function MainLayout() {
+  useEffect(() => {
+    updateNightMode();
+    const interval = setInterval(updateNightMode, 60_000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <>
       <div className="min-h-screen bg-background gradient-mesh">

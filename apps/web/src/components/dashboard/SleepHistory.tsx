@@ -90,29 +90,29 @@ function SleepStageBar({ record }: { record: WhoopSleepHistoryRecord }) {
 
 function LastNightCard({ record }: { record: WhoopSleepHistoryRecord }) {
   return (
-    <div className="glass-card rounded-2xl p-5">
+    <div className="surface-card rounded-2xl p-5">
       <div className="flex items-center gap-3 mb-4">
-        <div className="h-9 w-9 rounded-xl bg-[hsla(260,40%,65%,0.12)] flex items-center justify-center">
-          <Moon className="h-4 w-4 text-[hsl(260,40%,65%)]" />
+        <div className="h-9 w-9 rounded-xl bg-primary/12 flex items-center justify-center">
+          <Moon className="h-4 w-4 text-primary" />
         </div>
-        <h3 className="font-display text-base font-semibold tracking-tight text-white">Last Night</h3>
+        <h3 className="font-display text-base font-semibold tracking-tight text-foreground">Last Night</h3>
       </div>
 
       {/* Times */}
       <div className="grid grid-cols-2 gap-3 mb-4">
-        <div className="text-center p-3 bg-white/5 rounded-xl">
-          <div className="flex items-center justify-center gap-1.5 text-white/50 mb-1">
-            <Moon className="h-3 w-3 text-[hsl(260,40%,65%)]/70" />
+        <div className="text-center p-3 bg-surface rounded-xl">
+          <div className="flex items-center justify-center gap-1.5 text-muted-foreground mb-1">
+            <Moon className="h-3 w-3 text-primary/70" />
             <span className="text-[10px] font-medium uppercase tracking-wider">Bedtime</span>
           </div>
-          <span className="font-display text-lg font-semibold text-white">{formatTime(record.bedtime)}</span>
+          <span className="font-display text-lg font-semibold text-foreground">{formatTime(record.bedtime)}</span>
         </div>
-        <div className="text-center p-3 bg-white/5 rounded-xl">
-          <div className="flex items-center justify-center gap-1.5 text-white/50 mb-1">
-            <Sun className="h-3 w-3 text-accent/70" />
+        <div className="text-center p-3 bg-surface rounded-xl">
+          <div className="flex items-center justify-center gap-1.5 text-muted-foreground mb-1">
+            <Sun className="h-3 w-3 text-primary/70" />
             <span className="text-[10px] font-medium uppercase tracking-wider">Wake</span>
           </div>
-          <span className="font-display text-lg font-semibold text-white">{formatTime(record.wakeTime)}</span>
+          <span className="font-display text-lg font-semibold text-foreground">{formatTime(record.wakeTime)}</span>
         </div>
       </div>
 
@@ -120,7 +120,7 @@ function LastNightCard({ record }: { record: WhoopSleepHistoryRecord }) {
       <div className="space-y-2 mb-4">
         <div className="flex justify-between text-sm">
           <span className="text-muted-foreground">Total sleep</span>
-          <span className="font-semibold text-white">{formatDuration(record.totalSleepMins)}</span>
+          <span className="font-semibold text-foreground">{formatDuration(record.totalSleepMins)}</span>
         </div>
         <div className="flex justify-between text-sm">
           <span className="text-muted-foreground">Efficiency</span>
@@ -134,7 +134,7 @@ function LastNightCard({ record }: { record: WhoopSleepHistoryRecord }) {
               <Activity className="h-3.5 w-3.5" />
               Recovery
             </span>
-            <span className="font-semibold text-white">{record.recoveryScore}%</span>
+            <span className="font-semibold text-foreground">{record.recoveryScore}%</span>
           </div>
         )}
       </div>
@@ -150,8 +150,8 @@ function WeeklyTrend({ records }: { records: WhoopSleepHistoryRecord[] }) {
   const week = records.slice(0, 7).reverse();
 
   return (
-    <div className="glass-card rounded-2xl p-5">
-      <h3 className="font-display text-base font-semibold tracking-tight text-white mb-4">7-Day Trend</h3>
+    <div className="surface-card rounded-2xl p-5">
+      <h3 className="font-display text-base font-semibold tracking-tight text-foreground mb-4">7-Day Trend</h3>
       <div className="flex justify-between gap-1">
         {week.map((r) => (
           <div
@@ -161,7 +161,7 @@ function WeeklyTrend({ records }: { records: WhoopSleepHistoryRecord[] }) {
           >
             <span className="text-[10px] text-muted-foreground font-medium">{dayLabel(r.date)}</span>
             <div className={`h-3 w-3 rounded-full ${efficiencyColor(r.sleepEfficiency)} transition-transform hover:scale-125`} />
-            <span className="text-xs font-semibold text-white">{formatDuration(r.totalSleepMins)}</span>
+            <span className="text-xs font-semibold text-foreground">{formatDuration(r.totalSleepMins)}</span>
             <span className="text-[10px] text-muted-foreground">{r.sleepEfficiency.toFixed(0)}%</span>
           </div>
         ))}
@@ -193,7 +193,7 @@ export function SleepHistory() {
 
   if (isLoading) {
     return (
-      <div className="glass-card rounded-2xl flex flex-col items-center justify-center py-10">
+      <div className="surface-card rounded-2xl flex flex-col items-center justify-center py-10">
         <Loader2 className="h-5 w-5 animate-spin text-primary/40" />
         <p className="text-xs text-muted-foreground mt-3">Loading sleep data...</p>
       </div>

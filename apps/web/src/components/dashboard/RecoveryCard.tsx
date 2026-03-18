@@ -81,7 +81,7 @@ export function RecoveryCard() {
 
   if (isLoading) {
     return (
-      <div className="glass-card rounded-2xl flex flex-col items-center justify-center py-10">
+      <div className="surface-card rounded-2xl flex flex-col items-center justify-center py-10">
         <Loader2 className="h-5 w-5 animate-spin text-primary/40" />
         <p className="text-xs text-muted-foreground mt-3">Loading recovery...</p>
       </div>
@@ -91,13 +91,13 @@ export function RecoveryCard() {
   // Not connected — direct to settings
   if (!data?.connected) {
     return (
-      <div className="glass-card rounded-2xl p-5">
+      <div className="surface-card rounded-2xl p-5">
         <div className="flex items-start gap-4">
           <div className="h-11 w-11 rounded-2xl bg-primary/10 border border-primary/15 flex items-center justify-center shrink-0">
             <Activity className="h-5 w-5 text-primary" />
           </div>
           <div className="flex-1">
-            <h3 className="font-semibold mb-1.5 text-white">WHOOP Recovery</h3>
+            <h3 className="font-semibold mb-1.5 text-foreground">WHOOP Recovery</h3>
             <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
               Connect your WHOOP to see your recovery score, HRV, and resting
               heart rate.
@@ -117,12 +117,12 @@ export function RecoveryCard() {
   // Show message if connected but no recovery data yet
   if (!data.recovery) {
     return (
-      <div className="glass-card rounded-2xl p-5">
+      <div className="surface-card rounded-2xl p-5">
         <div className="flex items-center gap-3 mb-3">
           <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center">
             <Activity className="h-4 w-4 text-primary" />
           </div>
-          <h3 className="font-display text-base font-semibold tracking-tight text-white">
+          <h3 className="font-display text-base font-semibold tracking-tight text-foreground">
             WHOOP Recovery
           </h3>
         </div>
@@ -138,7 +138,7 @@ export function RecoveryCard() {
   const label = getRecoveryLabel(score);
 
   return (
-    <div className="glass-card rounded-2xl p-5">
+    <div className="surface-card rounded-2xl p-5">
       <div className="flex items-center gap-3 mb-4">
         <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center">
           <Activity className="h-4 w-4 text-primary" />
@@ -165,7 +165,7 @@ export function RecoveryCard() {
       {(data.recovery.hrvRmssd || data.recovery.restingHeartRate) && (
         <div className="mt-4 flex gap-3">
           {data.recovery.hrvRmssd && (
-            <div className="flex-1 p-3 bg-white/5 rounded-xl text-center">
+            <div className="flex-1 p-3 bg-surface rounded-xl text-center">
               <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">HRV</p>
               <p className="font-display text-lg font-semibold mt-0.5">
                 {data.recovery.hrvRmssd.toFixed(0)} <span className="text-xs text-muted-foreground font-normal">ms</span>
@@ -173,7 +173,7 @@ export function RecoveryCard() {
             </div>
           )}
           {data.recovery.restingHeartRate && (
-            <div className="flex-1 p-3 bg-white/5 rounded-xl text-center">
+            <div className="flex-1 p-3 bg-surface rounded-xl text-center">
               <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">RHR</p>
               <p className="font-display text-lg font-semibold mt-0.5">
                 {data.recovery.restingHeartRate} <span className="text-xs text-muted-foreground font-normal">bpm</span>
