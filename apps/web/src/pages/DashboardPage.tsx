@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import {
   Moon,
-  Sun,
   TrendingUp,
   ChevronRight,
   ChevronDown,
@@ -15,9 +14,9 @@ import {
   CalendarClock,
   AlertTriangle,
   Wifi,
-  MessageCircle,
-  Circle,
   CheckCircle2,
+  Clock,
+  User,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -30,6 +29,8 @@ import { RecoveryCard } from "@/components/dashboard/RecoveryCard";
 import { SleepHistory } from "@/components/dashboard/SleepHistory";
 import { useWhoopAutoSync } from "@/hooks/useWhoopAutoSync";
 import { getWhoopStatus } from "@/features/whoop/api/whoop";
+import { getSleepHistory, WhoopSleepHistoryRecord } from "@/features/whoop/api/whoop";
+import { getLatestRecovery } from "@/features/whoop/api/whoop";
 import { getCurrentProgramme, ProgrammeResponse } from "@/features/programme/api";
 
 // Format time from HH:MM to display format
@@ -55,6 +56,13 @@ function formatDuration(mins: number): string {
   return `${hours}h ${minutes}m`;
 }
 
+// Format minutes to Xh Ym
+function formatSleepMins(mins: number): string {
+  const hours = Math.floor(mins / 60);
+  const minutes = mins % 60;
+  return `${hours}h ${minutes.toString().padStart(2, "0")}m`;
+}
+
 // Get adjustment description
 function getAdjustmentDescription(
   adjustment: string | null,
@@ -62,8 +70,8 @@ function getAdjustmentDescription(
 ): string | null {
   if (!adjustment || adjustment === "BASELINE") return null;
   if (adjustment === "NONE") return "Maintaining current schedule";
-  if (adjustment === "INCREASE") return `Increased by ${mins} minutes`;
-  if (adjustment === "DECREASE") return `Decreased by ${mins} minutes`;
+  if (adjustment === "INCREASE") return `Increased by ${mins} minutes · based on your WHOOP data`;
+  if (adjustment === "DECREASE") return `Decreased by ${mins} minutes · based on your WHOOP data`;
   return null;
 }
 
@@ -75,61 +83,13 @@ function getGreeting(): string {
   return "Good evening";
 }
 
-function isNightTime(): boolean {
-  const hour = new Date().getHours();
-  return hour >= 21 || hour < 8;
-}
-
-// ═══════════════════════════════════════
-// SVG ILLUSTRATIONS
-// ═══════════════════════════════════════
-function DayIllustration() {
-  return (
-    <svg width="120" height="80" viewBox="0 0 120 80" fill="none" className="mx-auto">
-      {/* Horizon line */}
-      <ellipse cx="60" cy="65" rx="55" ry="3" fill="hsla(33,20%,50%,0.08)" />
-      {/* Sun */}
-      <circle cx="60" cy="38" r="16" fill="hsla(30,50%,60%,0.15)" />
-      <circle cx="60" cy="38" r="11" fill="hsla(25,45%,58%,0.25)" />
-      <circle cx="60" cy="38" r="7" fill="hsla(20,50%,62%,0.5)" />
-      {/* Rays */}
-      {[0, 45, 90, 135, 180, 225, 270, 315].map((angle) => {
-        const rad = (angle * Math.PI) / 180;
-        const x1 = 60 + 20 * Math.cos(rad);
-        const y1 = 38 + 20 * Math.sin(rad);
-        const x2 = 60 + 26 * Math.cos(rad);
-        const y2 = 38 + 26 * Math.sin(rad);
-        return (
-          <line
-            key={angle}
-            x1={x1} y1={y1} x2={x2} y2={y2}
-            stroke="hsla(25,45%,60%,0.2)"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-          />
-        );
-      })}
-    </svg>
-  );
-}
-
-function NightIllustration() {
-  return (
-    <svg width="120" height="80" viewBox="0 0 120 80" fill="none" className="mx-auto">
-      {/* Moon */}
-      <circle cx="55" cy="35" r="14" fill="hsla(33,25%,75%,0.15)" />
-      <circle cx="55" cy="35" r="10" fill="hsla(33,20%,70%,0.2)" />
-      {/* Moon crescent cutout */}
-      <circle cx="61" cy="30" r="9" fill="hsla(30,8%,7%,0.8)" />
-      {/* Stars */}
-      <circle cx="85" cy="20" r="1.5" fill="hsla(33,25%,75%,0.3)" />
-      <circle cx="30" cy="25" r="1" fill="hsla(33,25%,75%,0.2)" />
-      <circle cx="95" cy="40" r="1" fill="hsla(33,25%,75%,0.2)" />
-      <circle cx="75" cy="50" r="1.2" fill="hsla(33,25%,75%,0.25)" />
-      <circle cx="40" cy="55" r="0.8" fill="hsla(33,25%,75%,0.15)" />
-      <circle cx="100" cy="28" r="0.8" fill="hsla(33,25%,75%,0.15)" />
-    </svg>
-  );
+// Format date like "WEDNESDAY, 18 MARCH"
+function getFormattedDate(): string {
+  const now = new Date();
+  const day = now.toLocaleDateString("en-GB", { weekday: "long" }).toUpperCase();
+  const date = now.getDate();
+  const month = now.toLocaleDateString("en-GB", { month: "long" }).toUpperCase();
+  return `${day}, ${date} ${month}`;
 }
 
 export function DashboardPage() {
@@ -140,6 +100,8 @@ export function DashboardPage() {
   const [isInitializing, setIsInitializing] = useState(false);
   const [whoopConnected, setWhoopConnected] = useState<boolean | null>(null);
   const [programme, setProgramme] = useState<ProgrammeResponse | null>(null);
+  const [lastNight, setLastNight] = useState<WhoopSleepHistoryRecord | null>(null);
+  const [lastNightHrv, setLastNightHrv] = useState<number | null>(null);
   const [completedActions, setCompletedActions] = useState<Set<string>>(new Set());
   const [dataExpanded, setDataExpanded] = useState(() => {
     try {
@@ -229,6 +191,24 @@ export function DashboardPage() {
         setScheduleData(schedData);
         setWhoopConnected(whoopStatus.connected);
 
+        // Load WHOOP last-night data
+        if (whoopStatus.connected) {
+          try {
+            const [historyRes, recoveryRes] = await Promise.all([
+              getSleepHistory(1),
+              getLatestRecovery(),
+            ]);
+            if (historyRes.records.length > 0) {
+              setLastNight(historyRes.records[0]!);
+            }
+            if (recoveryRes.recovery?.hrvRmssd != null) {
+              setLastNightHrv(Math.round(recoveryRes.recovery.hrvRmssd));
+            }
+          } catch (error) {
+            console.error("Failed to load WHOOP data:", error);
+          }
+        }
+
         if (schedData.hasSchedule) {
           try {
             const prog = await getCurrentProgramme();
@@ -280,39 +260,53 @@ export function DashboardPage() {
   const nextAction = programme?.dailyActions.find((a) => !completedActions.has(a.id));
   const allActionsDone = programme ? programme.dailyActions.every((a) => completedActions.has(a.id)) : false;
 
+  // Efficiency colour
+  const effColour = lastNight
+    ? lastNight.sleepEfficiency >= 85
+      ? "text-[hsl(var(--sage))]"
+      : lastNight.sleepEfficiency >= 70
+        ? "text-[hsl(var(--gold))]"
+        : "text-[hsl(16,52%,62%)]"
+    : "";
+
   return (
-    <div className="px-4 pt-6">
+    <div className="px-5 pt-14">
       <div className="mx-auto max-w-lg">
         {/* ═══════════════════════════════════════
-            HEADER — greeting + phase pill
+            HEADER — date, avatar, greeting
             ═══════════════════════════════════════ */}
-        <div className="mb-4 animate-fade-up">
-          <p className="text-sm text-muted-foreground font-medium">
+        <div className="mb-1 animate-fade-up">
+          <div className="flex items-center justify-between mb-1">
+            <p className="text-[13px] text-muted-foreground tracking-wider">
+              {getFormattedDate()}
+            </p>
+            <Link
+              to="/settings"
+              className="h-8 w-8 rounded-full bg-secondary flex items-center justify-center"
+            >
+              <User className="h-4 w-4 text-muted-foreground" />
+            </Link>
+          </div>
+          <p className="text-[22px] font-medium text-foreground mb-4">
             {getGreeting()}{firstName ? `, ${firstName}` : ""}
           </p>
-          {hasSchedule && programme ? (
-            <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-primary/25 bg-primary/8">
-              <span className="text-xs font-medium text-primary">
-                Week {programme.progress.currentWeek} of {programme.totalWeeks} · {programme.topic}
-              </span>
-            </div>
-          ) : (
-            <h1 className="font-display text-2xl font-semibold tracking-tight text-foreground mt-0.5">
-              Your Sleep
-            </h1>
-          )}
         </div>
 
-        {/* ═══════════════════════════════════════
-            SVG ILLUSTRATION
-            ═══════════════════════════════════════ */}
-        <div className="mb-4 animate-fade-up stagger-1">
-          {isNightTime() ? <NightIllustration /> : <DayIllustration />}
-        </div>
+        {/* Week badge — gold, no topic */}
+        {hasSchedule && programme && (
+          <div className="mb-6 animate-fade-up stagger-1">
+            <div className="inline-flex items-center gap-2 bg-secondary border border-border/60 rounded-full px-3.5 py-1.5">
+              <div className="h-1.5 w-1.5 rounded-full bg-[hsl(var(--gold))]" />
+              <span className="text-[13px] text-[hsl(var(--gold))]">
+                Week {programme.progress.currentWeek} of {programme.totalWeeks}
+              </span>
+            </div>
+          </div>
+        )}
 
         {/* WHOOP reconnect banner */}
         {needsReauth && (
-          <div className="mb-5 animate-fade-up stagger-1 surface-card rounded-2xl p-4 border-l-2 border-l-primary">
+          <div className="mb-3 animate-fade-up stagger-1 surface-card rounded-2xl p-4 border-l-2 border-l-primary">
             <div className="flex items-start gap-3">
               <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
                 <AlertTriangle className="h-4 w-4 text-primary" />
@@ -359,7 +353,7 @@ export function DashboardPage() {
             )}
 
             {!isLoading && (
-              <div className="space-y-5">
+              <div className="space-y-3">
                 {/* ═══════════════════════════════════════
                     PRE-SCHEDULE STATES
                     ═══════════════════════════════════════ */}
@@ -448,42 +442,81 @@ export function DashboardPage() {
                 )}
 
                 {/* ═══════════════════════════════════════
-                    COACH CARD — primary, most prominent
+                    WHOOP DATA STRIP — last night
                     ═══════════════════════════════════════ */}
-                {hasSchedule && (
-                  <Link to="/chat" className="block animate-fade-up stagger-2">
-                    <div className="surface-card rounded-2xl p-5 border-l-2 border-l-primary transition-colors hover:bg-[hsl(var(--surface-elevated))]">
-                      <div className="flex items-start gap-3">
-                        <div className="h-10 w-10 rounded-full bg-primary/12 flex items-center justify-center shrink-0">
-                          <Sparkles className="h-5 w-5 text-primary" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          {programme?.dailyNudge?.message ? (
-                            <p className="text-sm leading-relaxed text-foreground/80">
-                              {programme.dailyNudge.message}
-                            </p>
-                          ) : (
-                            <p className="text-sm leading-relaxed text-foreground/80">
-                              Get personalised advice based on your real sleep data.
-                            </p>
-                          )}
-                          <span className="inline-flex items-center gap-1.5 mt-3 text-xs font-medium text-primary">
-                            <MessageCircle className="h-3.5 w-3.5" />
-                            Chat with your coach
-                          </span>
-                        </div>
+                {hasSchedule && lastNight && (
+                  <div className="animate-fade-up stagger-1 surface-card rounded-xl px-4 py-3 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="h-7 w-7 rounded-md bg-secondary border border-border/60 flex items-center justify-center">
+                        <Moon className="h-3.5 w-3.5 text-[hsl(var(--gold))]" />
                       </div>
+                      <span className="text-[12px] text-muted-foreground tracking-widest uppercase">Last night · WHOOP</span>
                     </div>
-                  </Link>
+                    <div className="flex gap-4">
+                      <div className="text-right">
+                        <p className="text-[11px] text-muted-foreground">Sleep</p>
+                        <p className="text-[15px] font-medium text-foreground">{formatSleepMins(lastNight.totalSleepMins)}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-[11px] text-muted-foreground">Efficiency</p>
+                        <p className={`text-[15px] font-medium ${effColour}`}>{Math.round(lastNight.sleepEfficiency)}%</p>
+                      </div>
+                      {lastNightHrv != null && (
+                        <div className="text-right">
+                          <p className="text-[11px] text-muted-foreground">HRV</p>
+                          <p className="text-[15px] font-medium text-foreground">{lastNightHrv}ms</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 )}
 
                 {/* ═══════════════════════════════════════
-                    DAILY ACTION CARD — single action
+                    COACH CARD — hero card
+                    ═══════════════════════════════════════ */}
+                {hasSchedule && (
+                  <div className="animate-fade-up stagger-2 surface-card rounded-2xl p-5">
+                    <div className="flex items-center gap-2.5 mb-3.5">
+                      <div className="h-9 w-9 rounded-full bg-[hsl(var(--gold))] flex items-center justify-center shrink-0">
+                        <Sparkles className="h-[18px] w-[18px] text-background" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[13px] font-medium text-foreground">Your coach</p>
+                        <p className="text-[11px] text-muted-foreground">Based on last night's data</p>
+                      </div>
+                      {lastNight && (
+                        <div className="bg-secondary rounded-md px-2 py-1">
+                          <span className="text-[11px] text-[hsl(var(--gold))]">Live</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {programme?.dailyNudge?.message ? (
+                      <p className="text-[15px] leading-relaxed text-foreground/75 mb-4">
+                        {programme.dailyNudge.message}
+                      </p>
+                    ) : (
+                      <p className="text-[15px] leading-relaxed text-foreground/75 mb-4">
+                        Get personalised advice based on your real sleep data.
+                      </p>
+                    )}
+
+                    <Button asChild className="w-full rounded-xl bg-[hsl(var(--gold))] text-background hover:bg-[hsl(36,55%,46%)] h-12 text-[15px] font-medium">
+                      <Link to="/chat">
+                        Talk to your coach
+                        <ChevronRight className="h-4 w-4 ml-1" />
+                      </Link>
+                    </Button>
+                  </div>
+                )}
+
+                {/* ═══════════════════════════════════════
+                    TONIGHT'S ACTION
                     ═══════════════════════════════════════ */}
                 {hasSchedule && programme && (
-                  <div className="animate-fade-up stagger-3 surface-card rounded-2xl p-5">
-                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-                      Today's action
+                  <div className="animate-fade-up stagger-3 surface-card rounded-2xl px-5 py-4">
+                    <h3 className="text-[11px] text-muted-foreground uppercase tracking-widest mb-3">
+                      Tonight's action
                     </h3>
                     {dashboardViews <= 3 && (
                       <p className="text-xs text-muted-foreground/70 mb-3 leading-relaxed">
@@ -499,10 +532,10 @@ export function DashboardPage() {
                       <button
                         type="button"
                         onClick={() => toggleAction(nextAction.id)}
-                        className="flex items-start gap-3 w-full text-left p-3 rounded-xl hover:bg-muted/40 transition-colors"
+                        className="flex items-center gap-3.5 w-full text-left"
                       >
-                        <Circle className="h-5 w-5 text-muted-foreground/30 shrink-0 mt-px" />
-                        <span className="text-sm leading-relaxed text-foreground/80">
+                        <div className="h-[22px] w-[22px] rounded-full border-[1.5px] border-border shrink-0" />
+                        <span className="text-[16px] text-foreground leading-snug">
                           {nextAction.text}
                         </span>
                       </button>
@@ -511,57 +544,50 @@ export function DashboardPage() {
                 )}
 
                 {/* ═══════════════════════════════════════
-                    SLEEP WINDOW CARD — simplified
+                    SLEEP WINDOW CARD
                     ═══════════════════════════════════════ */}
                 {hasSchedule && schedule && (
-                  <div className="animate-fade-up stagger-3 surface-card rounded-2xl p-5">
-                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">
+                  <div className="animate-fade-up stagger-3 surface-card rounded-2xl px-5 py-4">
+                    <h3 className="text-[11px] text-muted-foreground uppercase tracking-widest mb-4">
                       Your sleep window
                     </h3>
                     <div className="flex items-center justify-between">
                       {/* Bedtime */}
-                      <div className="text-center flex-1">
-                        <div className="flex items-center justify-center gap-1.5 text-muted-foreground mb-1.5">
-                          <Moon className="h-3.5 w-3.5 text-primary/60" />
-                          <span className="text-[10px] font-medium uppercase tracking-wider">Bedtime</span>
-                        </div>
-                        <p className="font-display text-2xl font-bold text-foreground leading-none">
+                      <div>
+                        <p className="text-[11px] text-muted-foreground uppercase tracking-wider mb-1">Bedtime</p>
+                        <p className="text-[30px] font-medium text-foreground leading-none">
                           {formatTimeDisplay(schedule.prescribedBedtime)}
-                        </p>
-                        <p className="text-muted-foreground text-xs font-medium mt-1">
-                          {formatTimePeriod(schedule.prescribedBedtime)}
+                          <span className="text-sm text-muted-foreground font-normal ml-1">
+                            {formatTimePeriod(schedule.prescribedBedtime)}
+                          </span>
                         </p>
                       </div>
 
-                      {/* Duration */}
-                      <div className="px-2">
-                        <div className="h-16 w-16 rounded-full border border-border flex items-center justify-center">
-                          <span className="font-display text-xs font-semibold text-foreground whitespace-nowrap">
-                            {formatDuration(schedule.timeInBedMins)}
-                          </span>
-                        </div>
+                      {/* Duration — rectangular pill */}
+                      <div className="bg-secondary rounded-xl px-3.5 py-2 text-center">
+                        <p className="text-[16px] font-medium text-foreground whitespace-nowrap">
+                          {formatDuration(schedule.timeInBedMins)}
+                        </p>
+                        <p className="text-[10px] text-muted-foreground">window</p>
                       </div>
 
                       {/* Wake time */}
-                      <div className="text-center flex-1">
-                        <div className="flex items-center justify-center gap-1.5 text-muted-foreground mb-1.5">
-                          <Sun className="h-3.5 w-3.5 text-primary/60" />
-                          <span className="text-[10px] font-medium uppercase tracking-wider">Wake up</span>
-                        </div>
-                        <p className="font-display text-2xl font-bold text-foreground leading-none">
+                      <div className="text-right">
+                        <p className="text-[11px] text-muted-foreground uppercase tracking-wider mb-1">Wake up</p>
+                        <p className="text-[30px] font-medium text-foreground leading-none">
                           {formatTimeDisplay(schedule.prescribedWakeTime)}
-                        </p>
-                        <p className="text-muted-foreground text-xs font-medium mt-1">
-                          {formatTimePeriod(schedule.prescribedWakeTime)}
+                          <span className="text-sm text-muted-foreground font-normal ml-1">
+                            {formatTimePeriod(schedule.prescribedWakeTime)}
+                          </span>
                         </p>
                       </div>
                     </div>
 
                     {/* Adjustment info */}
-                    {schedule.adjustmentMade && schedule.adjustmentMade !== "BASELINE" && (
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground mt-4 pt-3 border-t border-border/40">
-                        <TrendingUp className="h-3.5 w-3.5 text-primary/60" />
-                        <span className="font-medium">
+                    {schedule.adjustmentMade && schedule.adjustmentMade !== "BASELINE" && schedule.adjustmentMade !== "NONE" && (
+                      <div className="flex items-center gap-1.5 text-[12px] text-[hsl(var(--sage))] mt-3 pt-3 border-t border-border/30">
+                        <Clock className="h-3 w-3" />
+                        <span>
                           {getAdjustmentDescription(schedule.adjustmentMade, schedule.adjustmentMins)}
                         </span>
                       </div>
@@ -588,7 +614,7 @@ export function DashboardPage() {
                     </button>
 
                     {dataExpanded && (
-                      <div className="space-y-5 animate-fade-up">
+                      <div className="space-y-3 animate-fade-up">
                         <SleepHistory />
                         <EfficiencyChart />
                         <RecoveryCard />
@@ -601,7 +627,7 @@ export function DashboardPage() {
                     COMING SOON — pre-schedule
                     ═══════════════════════════════════════ */}
                 {!hasSchedule && (
-                  <div className="space-y-4">
+                  <div className="space-y-3">
                     <div className="animate-fade-up stagger-3 surface-card rounded-2xl p-5 opacity-50">
                       <div className="flex items-start gap-4">
                         <div className="h-10 w-10 rounded-xl bg-muted flex items-center justify-center shrink-0">
