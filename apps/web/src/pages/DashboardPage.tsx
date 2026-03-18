@@ -27,9 +27,9 @@ import {
 import { EfficiencyChart } from "@/components/dashboard/EfficiencyChart";
 import { RecoveryCard } from "@/components/dashboard/RecoveryCard";
 import { SleepHistory } from "@/components/dashboard/SleepHistory";
-import { useWhoopAutoSync } from "@/hooks/useWhoopAutoSync";
-import { getWhoopStatus } from "@/features/whoop/api/whoop";
-import { getSleepHistory, WhoopSleepHistoryRecord } from "@/features/whoop/api/whoop";
+import { useProviderAutoSync } from "@/hooks/useProviderAutoSync";
+import { getProviderStatus } from "@/features/providers/api";
+import { getUnifiedSleepHistory, UnifiedSleepHistoryRecord } from "@/features/providers/api";
 import { getLatestRecovery } from "@/features/whoop/api/whoop";
 import { getCurrentProgramme, ProgrammeResponse } from "@/features/programme/api";
 
@@ -70,8 +70,8 @@ function getAdjustmentDescription(
 ): string | null {
   if (!adjustment || adjustment === "BASELINE") return null;
   if (adjustment === "NONE") return "Maintaining current schedule";
-  if (adjustment === "INCREASE") return `Increased by ${mins} minutes · based on your WHOOP data`;
-  if (adjustment === "DECREASE") return `Decreased by ${mins} minutes · based on your WHOOP data`;
+  if (adjustment === "INCREASE") return `Increased by ${mins} minutes · based on your sleep data`;
+  if (adjustment === "DECREASE") return `Decreased by ${mins} minutes · based on your sleep data`;
   return null;
 }
 
@@ -94,13 +94,14 @@ function getFormattedDate(): string {
 
 export function DashboardPage() {
   const { user } = useAuth();
-  const { needsReauth } = useWhoopAutoSync();
+  const { needsReauth } = useProviderAutoSync();
   const [scheduleData, setScheduleData] = useState<CurrentScheduleResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isInitializing, setIsInitializing] = useState(false);
-  const [whoopConnected, setWhoopConnected] = useState<boolean | null>(null);
+  const [deviceConnected, setDeviceConnected] = useState<boolean | null>(null);
   const [programme, setProgramme] = useState<ProgrammeResponse | null>(null);
-  const [lastNight, setLastNight] = useState<WhoopSleepHistoryRecord | null>(null);
+  const [lastNight, setLastNight] = useState<UnifiedSleepHistoryRecord | null>(null);
+  const [lastNightProvider, setLastNightProvider] = useState<string | null>(null);
   const [lastNightHrv, setLastNightHrv] = useState<number | null>(null);
   const [completedActions, setCompletedActions] = useState<Set<string>>(new Set());
   const [dataExpanded, setDataExpanded] = useState(() => {
@@ -184,28 +185,31 @@ export function DashboardPage() {
   useEffect(() => {
     async function loadData() {
       try {
-        const [schedData, whoopStatus] = await Promise.all([
+        const [schedData, providerStatus] = await Promise.all([
           getCurrentSchedule(),
-          getWhoopStatus(),
+          getProviderStatus(),
         ]);
         setScheduleData(schedData);
-        setWhoopConnected(whoopStatus.connected);
+        const anyConnected = providerStatus.providers.some((p) => p.connected);
+        setDeviceConnected(anyConnected);
 
-        // Load WHOOP last-night data
-        if (whoopStatus.connected) {
+        // Load last-night data from unified sleep history
+        if (anyConnected) {
           try {
             const [historyRes, recoveryRes] = await Promise.all([
-              getSleepHistory(1),
+              getUnifiedSleepHistory(1),
               getLatestRecovery(),
             ]);
             if (historyRes.records.length > 0) {
-              setLastNight(historyRes.records[0]!);
+              const rec = historyRes.records[0]!;
+              setLastNight(rec);
+              setLastNightProvider(rec.provider === "whoop" ? "WHOOP" : rec.provider === "apple_health" ? "Apple Health" : rec.provider);
             }
             if (recoveryRes.recovery?.hrvRmssd != null) {
               setLastNightHrv(Math.round(recoveryRes.recovery.hrvRmssd));
             }
           } catch (error) {
-            console.error("Failed to load WHOOP data:", error);
+            console.error("Failed to load sleep data:", error);
           }
         }
 
@@ -368,7 +372,7 @@ export function DashboardPage() {
                           Your Sleep Coach, Powered by Real Data
                         </h2>
                         <p className="text-sm text-muted-foreground leading-relaxed">
-                          SleepAssured uses your WHOOP sleep data to build a personalised
+                          SleepAssured uses your sleep data to build a personalised
                           programme based on the most effective treatment for insomnia that exists.
                         </p>
                       </div>
@@ -383,18 +387,18 @@ export function DashboardPage() {
                         <Wifi className="h-5 w-5 text-primary" />
                       </div>
                       <h3 className="font-display text-base font-semibold tracking-tight text-foreground">
-                        {whoopConnected ? "Waiting for Sleep Data" : "Connect WHOOP to Get Started"}
+                        {deviceConnected ? "Waiting for Sleep Data" : "Connect a Device to Get Started"}
                       </h3>
                     </div>
                     <p className="text-sm text-muted-foreground leading-relaxed mb-4">
-                      {whoopConnected
-                        ? "We're automatically collecting your sleep data from WHOOP. We need 7 nights to understand your patterns and build your personalised schedule."
-                        : "Connect your WHOOP to start tracking sleep automatically. We need 7 nights of data to build your personalised schedule."}
+                      {deviceConnected
+                        ? "We're automatically collecting your sleep data. We need 7 nights to understand your patterns and build your personalised schedule."
+                        : "Connect your WHOOP or Apple Health to start tracking sleep automatically. We need 7 nights of data to build your personalised schedule."}
                     </p>
-                    {!whoopConnected && (
+                    {!deviceConnected && (
                       <Button asChild className="rounded-xl">
                         <Link to="/settings">
-                          Connect WHOOP
+                          Connect a device
                           <ChevronRight className="h-4 w-4 ml-1.5" />
                         </Link>
                       </Button>
@@ -450,7 +454,7 @@ export function DashboardPage() {
                       <div className="h-7 w-7 rounded-md bg-secondary border border-border/60 flex items-center justify-center">
                         <Moon className="h-3.5 w-3.5 text-[hsl(var(--gold))]" />
                       </div>
-                      <span className="text-[12px] text-muted-foreground tracking-widest uppercase">Last night · WHOOP</span>
+                      <span className="text-[12px] text-muted-foreground tracking-widest uppercase">Last night{lastNightProvider ? ` · ${lastNightProvider}` : ""}</span>
                     </div>
                     <div className="flex gap-4">
                       <div className="text-right">

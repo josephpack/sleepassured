@@ -84,7 +84,7 @@ router.get("/context", authenticate, async (req: Request, res: Response) => {
         avgTotalSleepTime: context.avgTotalSleepTime,
         avgSubjectiveQuality: context.avgSubjectiveQuality,
       },
-      hasWhoopConnection: context.hasWhoopConnection,
+      hasDeviceConnection: context.hasDeviceConnection,
       avgRecoveryScore: context.avgRecoveryScore,
       latestISI: context.latestISIScore
         ? {

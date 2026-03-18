@@ -10,7 +10,10 @@ import {
   updateUserProfile,
 } from "@/features/onboarding/api/onboarding";
 import { WhoopConnect } from "@/components/WhoopConnect";
+import { AppleHealthConnect } from "@/components/AppleHealthConnect";
 import { getWhoopStatus } from "@/features/whoop/api/whoop";
+import { getProviderStatus } from "@/features/providers/api";
+import { isNativeIOS } from "@/features/providers/apple-health/healthkit";
 import { ChevronLeft, ChevronRight, Check, Loader2, Moon, Sparkles, Activity, Clock } from "lucide-react";
 
 // ISI Questions — each with context-appropriate labels (0–4 scoring preserved)
@@ -129,16 +132,24 @@ export function OnboardingPage() {
   const [targetWakeTime, setTargetWakeTime] = useState("07:00");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [whoopConnected, setWhoopConnected] = useState(false);
+  const [appleHealthConnected, setAppleHealthConnected] = useState(false);
+  const anyDeviceConnected = whoopConnected || appleHealthConnected;
 
-  // Poll WHOOP connection status when on the whoop step
+  // Poll connection status when on the device step
   useEffect(() => {
     if (currentStep !== "whoop") return;
     let cancelled = false;
 
     async function checkStatus() {
       try {
-        const status = await getWhoopStatus();
-        if (!cancelled) setWhoopConnected(status.connected);
+        const [whoopStatus, providerStatus] = await Promise.all([
+          getWhoopStatus(),
+          getProviderStatus(),
+        ]);
+        if (cancelled) return;
+        setWhoopConnected(whoopStatus.connected);
+        const ah = providerStatus.providers.find((p) => p.slug === "apple_health");
+        setAppleHealthConnected(ah?.connected ?? false);
       } catch {
         // ignore
       }
@@ -294,7 +305,7 @@ export function OnboardingPage() {
                 <ul className="space-y-3">
                   {[
                     "A quick assessment to understand your sleep patterns",
-                    "Automatic sleep tracking via your WHOOP",
+                    "Automatic sleep tracking via WHOOP or Apple Health",
                     "Personalised sleep schedule that adjusts as you improve",
                     "Weekly progress tracking and coaching",
                   ].map((item, i) => (
@@ -415,19 +426,25 @@ export function OnboardingPage() {
 
             <div className="glass-card rounded-2xl overflow-hidden animate-fade-up stagger-1">
               <div className="p-6">
-                <h2 className="font-display text-xl font-semibold tracking-tight mb-1">Connect Your WHOOP</h2>
+                <h2 className="font-display text-xl font-semibold tracking-tight mb-1">Connect a Sleep Tracker</h2>
                 <p className="text-sm text-muted-foreground mb-5">
-                  WHOOP is required to automatically track your sleep data
+                  Connect a device to automatically track your sleep data
                 </p>
 
                 <WhoopConnect />
+
+                {isNativeIOS() && (
+                  <div className="mt-4">
+                    <AppleHealthConnect />
+                  </div>
+                )}
 
                 <div className="flex justify-between pt-5 mt-5 border-t border-border/30">
                   <Button variant="ghost" onClick={() => setCurrentStep("isi")} className="rounded-xl">
                     <ChevronLeft className="h-4 w-4 mr-1.5" />
                     Back
                   </Button>
-                  {whoopConnected && (
+                  {anyDeviceConnected && (
                     <Button onClick={() => setCurrentStep("waketime")} className="rounded-xl h-11 px-6">
                       Continue
                       <ChevronRight className="h-4 w-4 ml-1.5" />

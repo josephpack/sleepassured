@@ -24,12 +24,13 @@ model User {
   updatedAt           DateTime  @updatedAt @map("updated_at")
 
   // Relations
-  isiAssessments    ISIAssessment[]
-  sleepDiaries      SleepDiary[]
-  sleepWindows      SleepWindow[]
-  whoopConnection   WhoopConnection?
-  whoopSleepRecords WhoopSleepRecord[]
-  refreshTokens     RefreshToken[]
+  isiAssessments      ISIAssessment[]
+  sleepDiaries        SleepDiary[]
+  sleepWindows        SleepWindow[]
+  whoopConnection     WhoopConnection?
+  whoopSleepRecords   WhoopSleepRecord[]
+  refreshTokens       RefreshToken[]
+  providerConnections ProviderConnection[]
 
   @@map("users")
 }
@@ -61,6 +62,7 @@ model ISIAssessment {
 enum DiarySource {
   MANUAL
   WHOOP
+  APPLE_HEALTH
   HYBRID
 }
 
@@ -166,4 +168,28 @@ model WhoopSleepRecord {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("whoop_sleep_records")
+}
+
+enum ProviderType {
+  APPLE_HEALTH
+}
+
+enum ProviderConnectionStatus {
+  ACTIVE
+  DISCONNECTED
+}
+
+model ProviderConnection {
+  id           String                   @id @default(cuid())
+  userId       String                   @map("user_id")
+  provider     ProviderType
+  status       ProviderConnectionStatus @default(ACTIVE)
+  metadata     Json?
+  connectedAt  DateTime                 @default(now()) @map("connected_at")
+  lastSyncedAt DateTime?                @map("last_synced_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, provider])
+  @@map("provider_connections")
 }

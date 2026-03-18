@@ -1,6 +1,7 @@
 import OpenAI from "openai";
 import { prisma } from "@sleepassured/db";
 import logger from "../lib/logger.js";
+import { getRecentRecoveryData } from "../providers/recovery.js";
 
 // Lazy-initialize OpenAI client (only when API key is available)
 let openai: OpenAI | null = null;
@@ -144,7 +145,7 @@ function buildUserPrompt(context: UserContext): string {
     : "";
 
   const recoveryInfo = context.avgRecoveryScore !== undefined
-    ? `Average WHOOP recovery score this week: ${context.avgRecoveryScore}% (${getRecoveryDescription(context.avgRecoveryScore)})`
+    ? `Average recovery score this week: ${context.avgRecoveryScore}% (${getRecoveryDescription(context.avgRecoveryScore)})`
     : "";
 
   const issuesInfo = context.recentIssues && context.recentIssues.length > 0
@@ -378,27 +379,12 @@ export async function buildUserContextFromDb(
     weekNumber = Math.max(1, Math.ceil(daysSinceStart / 7));
   }
 
-  // Get average recovery score from WHOOP data for the past week
+  // Get average recovery score from connected providers (WHOOP, etc.)
   const weekAgo = new Date(weekStartDate);
   weekAgo.setDate(weekAgo.getDate() - 7);
 
-  const whoopRecords = await prisma.whoopSleepRecord.findMany({
-    where: {
-      userId,
-      startTime: {
-        gte: weekAgo,
-        lte: weekStartDate,
-      },
-      recoveryScore: { not: null },
-    },
-    select: { recoveryScore: true },
-  });
-
-  const avgRecoveryScore = whoopRecords.length > 0
-    ? Math.round(
-        whoopRecords.reduce((sum, r) => sum + (r.recoveryScore ?? 0), 0) / whoopRecords.length
-      )
-    : undefined;
+  const recoveryData = await getRecentRecoveryData(userId, weekAgo);
+  const avgRecoveryScore = recoveryData.avgScore ?? undefined;
 
   // Determine adjustment type
   let adjustmentType: AdjustmentType = "maintain";

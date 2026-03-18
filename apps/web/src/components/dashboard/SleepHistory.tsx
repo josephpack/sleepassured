@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { Loader2, Moon, Sun, Activity } from "lucide-react";
 import {
-  getSleepHistory,
-  WhoopSleepHistoryRecord,
-} from "@/features/whoop/api/whoop";
+  getUnifiedSleepHistory,
+  UnifiedSleepHistoryRecord,
+} from "@/features/providers/api";
 
 function formatTime(iso: string): string {
   return new Date(iso).toLocaleTimeString([], {
@@ -36,7 +36,7 @@ function dayLabel(dateStr: string): string {
   return d.toLocaleDateString([], { weekday: "short" });
 }
 
-function SleepStageBar({ record }: { record: WhoopSleepHistoryRecord }) {
+function SleepStageBar({ record }: { record: UnifiedSleepHistoryRecord }) {
   const total = record.remMins + record.lightMins + record.deepMins + record.awakeMins;
   if (total === 0) return null;
 
@@ -88,7 +88,7 @@ function SleepStageBar({ record }: { record: WhoopSleepHistoryRecord }) {
   );
 }
 
-function LastNightCard({ record }: { record: WhoopSleepHistoryRecord }) {
+function LastNightCard({ record }: { record: UnifiedSleepHistoryRecord }) {
   return (
     <div className="surface-card rounded-2xl p-5">
       <div className="flex items-center gap-3 mb-4">
@@ -145,7 +145,7 @@ function LastNightCard({ record }: { record: WhoopSleepHistoryRecord }) {
   );
 }
 
-function WeeklyTrend({ records }: { records: WhoopSleepHistoryRecord[] }) {
+function WeeklyTrend({ records }: { records: UnifiedSleepHistoryRecord[] }) {
   // Show up to 7, oldest first
   const week = records.slice(0, 7).reverse();
 
@@ -174,13 +174,13 @@ function WeeklyTrend({ records }: { records: WhoopSleepHistoryRecord[] }) {
 }
 
 export function SleepHistory() {
-  const [records, setRecords] = useState<WhoopSleepHistoryRecord[]>([]);
+  const [records, setRecords] = useState<UnifiedSleepHistoryRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     async function load() {
       try {
-        const { records: data } = await getSleepHistory(7);
+        const { records: data } = await getUnifiedSleepHistory(7);
         setRecords(data);
       } catch (error) {
         console.error("Failed to load sleep history:", error);

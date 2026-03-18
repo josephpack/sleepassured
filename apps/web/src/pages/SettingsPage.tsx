@@ -1,6 +1,7 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { WhoopConnect } from "@/components/WhoopConnect";
+import { AppleHealthConnect } from "@/components/AppleHealthConnect";
 import { LogOut, Shield, User, Link2 } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -46,8 +47,13 @@ export function SettingsPage() {
               <Link2 className="h-3.5 w-3.5 text-muted-foreground" />
               <h2 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Integrations</h2>
             </div>
-            <div className="glass-card rounded-2xl p-5">
-              <WhoopConnect />
+            <div className="space-y-4">
+              <div className="glass-card rounded-2xl p-5">
+                <WhoopConnect />
+              </div>
+              <div className="glass-card rounded-2xl p-5">
+                <AppleHealthConnect />
+              </div>
             </div>
           </section>
 

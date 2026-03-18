@@ -2,6 +2,7 @@ import OpenAI from "openai";
 import { prisma } from "@sleepassured/db";
 import logger from "../lib/logger.js";
 import { formatCurriculumForSystemPrompt, getAllIntentGuidances } from "./curriculum.js";
+import { getRecentRecoveryData } from "../providers/recovery.js";
 
 // Lazy-initialize OpenAI client
 let openai: OpenAI | null = null;
@@ -94,7 +95,7 @@ PATTERN 1: PREDICTING DISASTER AFTER A BAD NIGHT
 PATTERN 2: TRYING TOO HARD TO SLEEP
 Clock-watching, anxious routines, scoring their night, "I did everything right and still didn't sleep."
 → Sleep is involuntary — like digestion. You can set it up but you can't force it. The moment you try to make yourself sleep, you switch on the alertness system. The programme handles the structure. Their job is to let go.
-→ Do NOT raise WHOOP over-monitoring unless they do. But if they say "My WHOOP says I slept badly so today will be bad," separate the number from how they actually feel.
+→ Do NOT raise device data over-monitoring unless they do. But if they say "My device says I slept badly so today will be bad," separate the number from how they actually feel.
 
 PATTERN 3: BELIEFS ABOUT NEEDING 8 HOURS
 "I need 8 hours to function." / "My sleep score was low so I must be impaired."
@@ -136,7 +137,7 @@ HARD CONSTRAINTS
 6. If the user reports extreme daytime sleepiness affecting driving or safety, suggest speaking with their GP.
 7. If the user mentions severe distress, suicidal thoughts, or severe depression, recommend they contact a healthcare professional or crisis service.
 8. Stay focused on sleep. If asked about unrelated topics: "I'm here to help with your sleep. What can I help with?"
-9. Do NOT raise WHOOP metric over-monitoring unless the user brings it up.
+9. Do NOT raise device metric over-monitoring unless the user brings it up.
 
 The user's sleep data is provided below. Use their actual numbers — week number, efficiency, trends. Never ask them for data you already have.`;
 
@@ -169,8 +170,9 @@ export interface SleepDataContext {
   avgTotalSleepTime: number | null;
   avgSubjectiveQuality: number | null;
   entriesCount: number;
-  // WHOOP data if available
-  hasWhoopConnection: boolean;
+  // Device data if available
+  hasDeviceConnection: boolean;
+  recoveryProvider: string | null;
   recentRecoveryScores: number[];
   avgRecoveryScore: number | null;
   // Program status
@@ -262,32 +264,18 @@ export async function buildChatContext(userId: string): Promise<SleepDataContext
       ? diaryEntries.reduce((sum, e) => sum + e.subjectiveQuality, 0) / diaryEntries.length
       : null;
 
-  // Check WHOOP connection and get recovery scores
-  const whoopConnection = await prisma.whoopConnection.findUnique({
-    where: { userId },
-  });
+  // Check for any connected device (WHOOP or provider) and get recovery scores
+  const [whoopConnection, providerConnection] = await Promise.all([
+    prisma.whoopConnection.findUnique({ where: { userId }, select: { id: true } }),
+    prisma.providerConnection.findFirst({ where: { userId, status: "ACTIVE" }, select: { id: true } }),
+  ]);
 
-  let recentRecoveryScores: number[] = [];
-  let avgRecoveryScore: number | null = null;
+  const hasDeviceConnection = !!whoopConnection || !!providerConnection;
 
-  if (whoopConnection) {
-    const whoopRecords = await prisma.whoopSleepRecord.findMany({
-      where: {
-        userId,
-        startTime: { gte: twoWeeksAgo },
-        recoveryScore: { not: null },
-      },
-      orderBy: { startTime: "desc" },
-      select: { recoveryScore: true },
-      take: 14,
-    });
-
-    recentRecoveryScores = whoopRecords.map((r) => r.recoveryScore!);
-    avgRecoveryScore =
-      recentRecoveryScores.length > 0
-        ? recentRecoveryScores.reduce((a, b) => a + b, 0) / recentRecoveryScores.length
-        : null;
-  }
+  const recoveryData = await getRecentRecoveryData(userId, twoWeeksAgo);
+  const recentRecoveryScores = recoveryData.scores;
+  const avgRecoveryScore = recoveryData.avgScore;
+  const recoveryProvider = recoveryData.provider;
 
   // Calculate week number
   let weekNumber = 1;
@@ -337,7 +325,8 @@ export async function buildChatContext(userId: string): Promise<SleepDataContext
     avgTotalSleepTime,
     avgSubjectiveQuality,
     entriesCount: diaryEntries.length,
-    hasWhoopConnection: !!whoopConnection,
+    hasDeviceConnection,
+    recoveryProvider: recoveryProvider ?? null,
     recentRecoveryScores,
     avgRecoveryScore,
     weekNumber,
@@ -402,8 +391,9 @@ function formatContextForAI(context: SleepDataContext): string {
     }
   }
 
-  if (context.hasWhoopConnection && context.avgRecoveryScore !== null) {
-    lines.push(`\nWHOOP DATA:`);
+  if (context.hasDeviceConnection && context.avgRecoveryScore !== null) {
+    const label = context.recoveryProvider ? `${context.recoveryProvider} DATA` : "DEVICE DATA";
+    lines.push(`\n${label}:`);
     lines.push(`- Average recovery score: ${context.avgRecoveryScore.toFixed(0)}%`);
   }
 

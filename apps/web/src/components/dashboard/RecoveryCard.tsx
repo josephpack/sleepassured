@@ -97,9 +97,9 @@ export function RecoveryCard() {
             <Activity className="h-5 w-5 text-primary" />
           </div>
           <div className="flex-1">
-            <h3 className="font-semibold mb-1.5 text-foreground">WHOOP Recovery</h3>
+            <h3 className="font-semibold mb-1.5 text-foreground">Recovery</h3>
             <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
-              Connect your WHOOP to see your recovery score, HRV, and resting
+              Connect a device to see your recovery score, HRV, and resting
               heart rate.
             </p>
             <Button asChild size="sm" variant="outline" className="rounded-xl border-border/60">
@@ -123,11 +123,11 @@ export function RecoveryCard() {
             <Activity className="h-4 w-4 text-primary" />
           </div>
           <h3 className="font-display text-base font-semibold tracking-tight text-foreground">
-            WHOOP Recovery
+            Recovery
           </h3>
         </div>
         <p className="text-sm text-muted-foreground">
-          No recovery data yet. Sync your WHOOP to see your recovery score.
+          No recovery data yet. Sync your device to see your recovery score.
         </p>
       </div>
     );
@@ -144,7 +144,7 @@ export function RecoveryCard() {
           <Activity className="h-4 w-4 text-primary" />
         </div>
         <h3 className="font-display text-base font-semibold tracking-tight">
-          WHOOP Recovery
+          Recovery
         </h3>
       </div>
 

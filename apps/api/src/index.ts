@@ -18,6 +18,7 @@ import coachingRoutes from "./routes/coaching.js";
 import chatRoutes from "./routes/chat.js";
 import programmeRoutes from "./routes/programme.js";
 import adminRoutes from "./routes/admin.js";
+import providerRoutes from "./routes/providers.js";
 import { startWhoopSyncScheduler } from "./jobs/whoop-sync.js";
 import { startWeeklyAdjustmentScheduler } from "./jobs/weekly-adjustment.js";
 
@@ -83,6 +84,7 @@ app.use("/api/coaching", coachingRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/programme", programmeRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/providers", providerRoutes);
 
 // In production, serve the Vite-built frontend
 if (process.env.NODE_ENV === "production") {
