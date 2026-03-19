@@ -2,6 +2,7 @@ import { createBrowserRouter, Navigate } from "react-router-dom";
 import { LoginPage } from "@/pages/LoginPage";
 import { SignupPage } from "@/pages/SignupPage";
 import { DashboardPage } from "@/pages/DashboardPage";
+import { ProgressPage } from "@/pages/ProgressPage";
 import { SettingsPage } from "@/pages/SettingsPage";
 import { AdminPage } from "@/pages/AdminPage";
 import { AdminUserPage } from "@/pages/AdminUserPage";
@@ -51,6 +52,10 @@ export const router = createBrowserRouter([
               {
                 path: "/chat",
                 element: <ChatPage />,
+              },
+              {
+                path: "/progress",
+                element: <ProgressPage />,
               },
             ],
           },

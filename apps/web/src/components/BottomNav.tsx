@@ -4,7 +4,7 @@ import { Home, MessageCircle, BarChart3, Settings } from "lucide-react";
 const tabs = [
   { to: "/dashboard", label: "Home", icon: Home },
   { to: "/chat", label: "Coach", icon: MessageCircle },
-  { to: "/dashboard", label: "Progress", icon: BarChart3 }, // TODO: Progress page — link to /progress when built
+  { to: "/progress", label: "Progress", icon: BarChart3 },
   { to: "/settings", label: "Settings", icon: Settings },
 ] as const;
 
@@ -15,10 +15,7 @@ export function TabBar() {
     <nav className="fixed bottom-0 inset-x-0 z-50 surface-nav pb-safe">
       <div className="flex items-center justify-around px-4 pt-2 pb-2 max-w-lg mx-auto">
         {tabs.map(({ to, label, icon: Icon }) => {
-          const isActive =
-            label === "Progress"
-              ? false // Progress tab is not active until the page exists
-              : location.pathname.startsWith(to);
+          const isActive = location.pathname.startsWith(to);
 
           return (
             <Link
