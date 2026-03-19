@@ -28,8 +28,8 @@ export default defineConfig({
         name: "SleepAssured",
         short_name: "SleepAssured",
         description: "Your personalised sleep therapy companion",
-        theme_color: "#6366f1",
-        background_color: "#0f172a",
+        theme_color: "#1c1916",
+        background_color: "#141210",
         display: "standalone",
         start_url: "/dashboard",
         icons: [

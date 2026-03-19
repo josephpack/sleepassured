@@ -24,6 +24,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { api } from "@/lib/api";
+import { Logo } from "@/components/Logo";
 
 // ─── Types ───────────────────────────────────────────────────────
 
@@ -277,6 +278,9 @@ export function ProgressPage() {
       <div className="mx-auto max-w-lg">
         {/* Header */}
         <div className="mb-5 animate-fade-up">
+          <div className="mb-3">
+            <Logo />
+          </div>
           <h1 className="text-[22px] font-medium text-foreground">Progress</h1>
           <div className="flex items-center gap-3 mt-1">
             <span className="text-[13px] text-muted-foreground">

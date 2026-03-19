@@ -19,6 +19,7 @@ import {
   User,
 } from "lucide-react";
 import { toast } from "sonner";
+import { Logo } from "@/components/Logo";
 import {
   getCurrentSchedule,
   initializeSchedule,
@@ -277,13 +278,11 @@ export function DashboardPage() {
     <div className="px-5 pt-14">
       <div className="mx-auto max-w-lg">
         {/* ═══════════════════════════════════════
-            HEADER — date, avatar, greeting
+            HEADER — logo bar + greeting
             ═══════════════════════════════════════ */}
         <div className="mb-1 animate-fade-up">
-          <div className="flex items-center justify-between mb-1">
-            <p className="text-[13px] text-muted-foreground tracking-wider">
-              {getFormattedDate()}
-            </p>
+          <div className="flex items-center justify-between mb-3">
+            <Logo />
             <Link
               to="/settings"
               className="h-8 w-8 rounded-full bg-secondary flex items-center justify-center"
@@ -291,6 +290,9 @@ export function DashboardPage() {
               <User className="h-4 w-4 text-muted-foreground" />
             </Link>
           </div>
+          <p className="text-[13px] text-muted-foreground tracking-wider mb-0.5">
+            {getFormattedDate()}
+          </p>
           <p className="text-[22px] font-medium text-foreground mb-4">
             {getGreeting()}{firstName ? `, ${firstName}` : ""}
           </p>
