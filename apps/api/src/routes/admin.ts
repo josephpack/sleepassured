@@ -343,4 +343,30 @@ router.post("/users/:id/trigger-adjustment", async (req: Request, res: Response)
   }
 });
 
+// DELETE /api/admin/users/:id — permanently delete a user and all their data
+router.delete("/users/:id", async (req: Request, res: Response) => {
+  try {
+    const userId = req.params.id as string;
+
+    if (userId === req.user!.userId) {
+      res.status(400).json({ error: "You cannot delete your own account" });
+      return;
+    }
+
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      res.status(404).json({ error: "User not found" });
+      return;
+    }
+
+    await prisma.user.delete({ where: { id: userId } });
+
+    logger.info({ userId, email: user.email }, "Admin: deleted user");
+    res.json({ success: true });
+  } catch (error) {
+    logger.error({ err: error }, "Admin: failed to delete user");
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 export default router;

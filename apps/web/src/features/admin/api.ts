@@ -100,3 +100,7 @@ export async function adminResetPassword(
 ): Promise<{ success: boolean }> {
   return api(`/admin/users/${id}/reset-password`, { method: "POST", body: { password } });
 }
+
+export async function deleteAdminUser(id: string): Promise<{ success: boolean }> {
+  return api(`/admin/users/${id}`, { method: "DELETE" });
+}

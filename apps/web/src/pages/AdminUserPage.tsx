@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +11,7 @@ import {
   adminSyncWhoop,
   adminTriggerAdjustment,
   adminResetPassword,
+  deleteAdminUser,
   AdminUserDetail,
   DiaryEntry,
   SleepWindowEntry,
@@ -150,9 +151,11 @@ function ISIList({ assessments }: { assessments: ISIAssessmentEntry[] }) {
 function AdminActionsCard({
   user,
   onUserUpdated,
+  onDeleted,
 }: {
   user: AdminUserDetail["user"];
   onUserUpdated: (updates: Partial<AdminUserDetail["user"]>) => void;
+  onDeleted: () => void;
 }) {
   const [notes, setNotes] = useState(user.adminNotes ?? "");
   const [notesSaving, setNotesSaving] = useState(false);
@@ -170,6 +173,10 @@ function AdminActionsCard({
   const [resetLoading, setResetLoading] = useState(false);
   const [resetDone, setResetDone] = useState(false);
   const [resetError, setResetError] = useState<string | null>(null);
+
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   async function handleUnflag() {
     setUnflagging(true);
@@ -242,6 +249,18 @@ function AdminActionsCard({
       setResetError(err instanceof ApiError ? err.message : "Reset failed");
     } finally {
       setResetLoading(false);
+    }
+  }
+
+  async function handleDelete() {
+    setDeleteLoading(true);
+    setDeleteError(null);
+    try {
+      await deleteAdminUser(user.id);
+      onDeleted();
+    } catch (err) {
+      setDeleteError(err instanceof ApiError ? err.message : "Delete failed");
+      setDeleteLoading(false);
     }
   }
 
@@ -335,6 +354,34 @@ function AdminActionsCard({
           {resetDone && <p className="text-sm text-green-600">Password reset successfully</p>}
           {resetError && <p className="text-sm text-red-600">{resetError}</p>}
         </div>
+
+        {/* Delete user */}
+        <div className="space-y-2 border-t pt-4">
+          <label className="text-sm font-medium text-destructive">Danger Zone</label>
+          {!deleteConfirm ? (
+            <div>
+              <Button size="sm" variant="destructive" onClick={() => setDeleteConfirm(true)}>
+                Delete User
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground">
+                This will permanently delete <strong>{user.name}</strong> and all their data. This cannot be undone.
+              </p>
+              <div className="flex gap-2">
+                <Button size="sm" variant="destructive" onClick={handleDelete} disabled={deleteLoading}>
+                  {deleteLoading && <Loader2 className="mr-2 h-3 w-3 animate-spin" />}
+                  Confirm Delete
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => setDeleteConfirm(false)} disabled={deleteLoading}>
+                  Cancel
+                </Button>
+              </div>
+              {deleteError && <p className="text-sm text-red-600">{deleteError}</p>}
+            </div>
+          )}
+        </div>
       </CardContent>
     </Card>
   );
@@ -342,6 +389,7 @@ function AdminActionsCard({
 
 export function AdminUserPage() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [data, setData] = useState<AdminUserDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -431,7 +479,7 @@ export function AdminUserPage() {
 
         <div className="space-y-6">
           {/* Admin actions */}
-          <AdminActionsCard user={user} onUserUpdated={handleUserUpdated} />
+          <AdminActionsCard user={user} onUserUpdated={handleUserUpdated} onDeleted={() => navigate("/admin")} />
 
           {/* Diary entries */}
           <Card>
