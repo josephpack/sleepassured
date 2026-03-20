@@ -11,7 +11,7 @@ import {
 } from "../services/coaching.js";
 import logger from "../lib/logger.js";
 
-interface AdjustmentJobResult {
+export interface AdjustmentJobResult {
   userId: string;
   success: boolean;
   action?: string;

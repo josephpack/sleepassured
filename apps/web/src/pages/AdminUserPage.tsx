@@ -1,14 +1,22 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   getAdminUser,
+  updateAdminUser,
+  adminSyncWhoop,
+  adminTriggerAdjustment,
+  adminResetPassword,
   AdminUserDetail,
   DiaryEntry,
   SleepWindowEntry,
   ISIAssessmentEntry,
+  SyncResult,
+  AdjustmentResult,
 } from "@/features/admin/api";
 import { ApiError } from "@/lib/api";
 
@@ -139,6 +147,199 @@ function ISIList({ assessments }: { assessments: ISIAssessmentEntry[] }) {
   );
 }
 
+function AdminActionsCard({
+  user,
+  onUserUpdated,
+}: {
+  user: AdminUserDetail["user"];
+  onUserUpdated: (updates: Partial<AdminUserDetail["user"]>) => void;
+}) {
+  const [notes, setNotes] = useState(user.adminNotes ?? "");
+  const [notesSaving, setNotesSaving] = useState(false);
+  const [notesSaved, setNotesSaved] = useState(false);
+
+  const [unflagging, setUnflagging] = useState(false);
+
+  const [syncLoading, setSyncLoading] = useState(false);
+  const [syncResult, setSyncResult] = useState<SyncResult | null>(null);
+
+  const [adjustLoading, setAdjustLoading] = useState(false);
+  const [adjustResult, setAdjustResult] = useState<AdjustmentResult | null>(null);
+
+  const [resetPw, setResetPw] = useState("");
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetDone, setResetDone] = useState(false);
+  const [resetError, setResetError] = useState<string | null>(null);
+
+  async function handleUnflag() {
+    setUnflagging(true);
+    try {
+      await updateAdminUser(user.id, { flaggedForReview: false });
+      onUserUpdated({ flaggedForReview: false, flaggedReason: null });
+    } finally {
+      setUnflagging(false);
+    }
+  }
+
+  async function handleSaveNotes() {
+    setNotesSaving(true);
+    setNotesSaved(false);
+    try {
+      await updateAdminUser(user.id, { adminNotes: notes });
+      onUserUpdated({ adminNotes: notes });
+      setNotesSaved(true);
+      setTimeout(() => setNotesSaved(false), 2000);
+    } finally {
+      setNotesSaving(false);
+    }
+  }
+
+  async function handleSyncWhoop() {
+    setSyncLoading(true);
+    setSyncResult(null);
+    try {
+      const result = await adminSyncWhoop(user.id);
+      setSyncResult(result);
+    } catch (err) {
+      setSyncResult({
+        userId: user.id,
+        success: false,
+        error: err instanceof ApiError ? err.message : "Sync failed",
+      });
+    } finally {
+      setSyncLoading(false);
+    }
+  }
+
+  async function handleTriggerAdjustment() {
+    setAdjustLoading(true);
+    setAdjustResult(null);
+    try {
+      const result = await adminTriggerAdjustment(user.id);
+      setAdjustResult(result);
+    } catch (err) {
+      setAdjustResult({
+        userId: user.id,
+        success: false,
+        error: err instanceof ApiError ? err.message : "Adjustment failed",
+      });
+    } finally {
+      setAdjustLoading(false);
+    }
+  }
+
+  async function handleResetPassword() {
+    if (!resetPw) return;
+    setResetLoading(true);
+    setResetDone(false);
+    setResetError(null);
+    try {
+      await adminResetPassword(user.id, resetPw);
+      setResetDone(true);
+      setResetPw("");
+      setTimeout(() => setResetDone(false), 3000);
+    } catch (err) {
+      setResetError(err instanceof ApiError ? err.message : "Reset failed");
+    } finally {
+      setResetLoading(false);
+    }
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Admin Actions</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {/* Flag status */}
+        {user.flaggedForReview && (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <span className="inline-block rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-800">
+                Flagged for review
+              </span>
+              {user.flaggedReason && (
+                <span className="text-sm text-muted-foreground">— {user.flaggedReason}</span>
+              )}
+            </div>
+            <Button size="sm" variant="outline" onClick={handleUnflag} disabled={unflagging}>
+              {unflagging && <Loader2 className="mr-2 h-3 w-3 animate-spin" />}
+              Unflag User
+            </Button>
+          </div>
+        )}
+
+        {/* Admin notes */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Admin Notes</label>
+          <Textarea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder="Internal notes about this user..."
+            rows={3}
+          />
+          <div className="flex items-center gap-2">
+            <Button size="sm" onClick={handleSaveNotes} disabled={notesSaving}>
+              {notesSaving && <Loader2 className="mr-2 h-3 w-3 animate-spin" />}
+              Save Notes
+            </Button>
+            {notesSaved && <span className="text-sm text-green-600">Saved</span>}
+          </div>
+        </div>
+
+        {/* Job triggers */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Job Triggers</label>
+          <div className="flex flex-wrap gap-2">
+            <Button size="sm" variant="outline" onClick={handleSyncWhoop} disabled={syncLoading}>
+              {syncLoading && <Loader2 className="mr-2 h-3 w-3 animate-spin" />}
+              Sync WHOOP
+            </Button>
+            <Button size="sm" variant="outline" onClick={handleTriggerAdjustment} disabled={adjustLoading}>
+              {adjustLoading && <Loader2 className="mr-2 h-3 w-3 animate-spin" />}
+              Trigger Adjustment
+            </Button>
+          </div>
+          {syncResult && (
+            <p className={`text-sm ${syncResult.success ? "text-green-600" : "text-red-600"}`}>
+              {syncResult.success
+                ? `${syncResult.recordsSynced} record${syncResult.recordsSynced !== 1 ? "s" : ""} synced`
+                : `Sync failed: ${syncResult.error}`}
+            </p>
+          )}
+          {adjustResult && (
+            <p className={`text-sm ${adjustResult.success ? "text-green-600" : "text-red-600"}`}>
+              {adjustResult.success
+                ? `${adjustResult.action} — TIB adjusted to ${formatMinsAsHM(adjustResult.newTIB!)} (avg SE: ${adjustResult.avgSleepEfficiency?.toFixed(1)}%)`
+                : `Adjustment failed: ${adjustResult.error}`}
+            </p>
+          )}
+        </div>
+
+        {/* Password reset */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Reset Password</label>
+          <div className="flex gap-2">
+            <Input
+              type="password"
+              value={resetPw}
+              onChange={(e) => setResetPw(e.target.value)}
+              placeholder="New password"
+              className="max-w-xs"
+            />
+            <Button size="sm" variant="outline" onClick={handleResetPassword} disabled={resetLoading || !resetPw}>
+              {resetLoading && <Loader2 className="mr-2 h-3 w-3 animate-spin" />}
+              Reset Password
+            </Button>
+          </div>
+          {resetDone && <p className="text-sm text-green-600">Password reset successfully</p>}
+          {resetError && <p className="text-sm text-red-600">{resetError}</p>}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 export function AdminUserPage() {
   const { id } = useParams<{ id: string }>();
   const [data, setData] = useState<AdminUserDetail | null>(null);
@@ -160,6 +361,13 @@ export function AdminUserPage() {
       })
       .finally(() => setLoading(false));
   }, [id]);
+
+  function handleUserUpdated(updates: Partial<AdminUserDetail["user"]>) {
+    setData((prev) => {
+      if (!prev) return prev;
+      return { ...prev, user: { ...prev.user, ...updates } };
+    });
+  }
 
   if (loading) {
     return (
@@ -222,6 +430,9 @@ export function AdminUserPage() {
         </div>
 
         <div className="space-y-6">
+          {/* Admin actions */}
+          <AdminActionsCard user={user} onUserUpdated={handleUserUpdated} />
+
           {/* Diary entries */}
           <Card>
             <CardHeader>

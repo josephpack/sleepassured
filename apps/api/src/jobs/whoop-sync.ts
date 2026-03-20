@@ -13,7 +13,7 @@ import {
 import { autoCreateDiaryFromWhoop } from "../services/diary-auto-create.js";
 import logger from "../lib/logger.js";
 
-interface SyncResult {
+export interface SyncResult {
   userId: string;
   success: boolean;
   recordsSynced?: number;
@@ -21,7 +21,7 @@ interface SyncResult {
 }
 
 // Sync sleep data for a single user
-async function syncUserData(userId: string): Promise<SyncResult> {
+export async function syncUserData(userId: string): Promise<SyncResult> {
   try {
     const connection = await prisma.whoopConnection.findUnique({
       where: { userId },
