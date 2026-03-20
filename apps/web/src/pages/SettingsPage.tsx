@@ -2,15 +2,23 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { WhoopConnect } from "@/components/WhoopConnect";
 import { AppleHealthConnect } from "@/components/AppleHealthConnect";
-import { LogOut, Shield, User, Link2 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { ArrowLeft, LogOut, Shield, User, Link2 } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 
 export function SettingsPage() {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
   return (
     <div className="px-4 pt-6 pb-10">
       <div className="mx-auto max-w-lg">
+        {/* Back button */}
+        <div className="mb-4 animate-fade-up">
+          <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
+            <ArrowLeft className="h-4 w-4 mr-1" /> Back
+          </Button>
+        </div>
+
         {/* Header */}
         <div className="mb-6 animate-fade-up">
           <h1 className="font-display text-2xl font-semibold tracking-tight">Settings</h1>

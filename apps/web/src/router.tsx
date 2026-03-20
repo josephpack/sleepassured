@@ -57,11 +57,11 @@ export const router = createBrowserRouter([
                 path: "/progress",
                 element: <ProgressPage />,
               },
+              {
+                path: "/settings",
+                element: <SettingsPage />,
+              },
             ],
-          },
-          {
-            path: "/settings",
-            element: <SettingsPage />,
           },
           {
             path: "/onboarding",
