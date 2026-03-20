@@ -14,9 +14,9 @@ import {
   CalendarClock,
   AlertTriangle,
   Wifi,
-  CheckCircle2,
   Clock,
   User,
+  Lightbulb,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Logo } from "@/components/Logo";
@@ -104,7 +104,6 @@ export function DashboardPage() {
   const [lastNight, setLastNight] = useState<UnifiedSleepHistoryRecord | null>(null);
   const [lastNightProvider, setLastNightProvider] = useState<string | null>(null);
   const [lastNightHrv, setLastNightHrv] = useState<number | null>(null);
-  const [completedActions, setCompletedActions] = useState<Set<string>>(new Set());
   const [dataExpanded, setDataExpanded] = useState(() => {
     try {
       return localStorage.getItem("sa_data_expanded") === "true";
@@ -112,64 +111,6 @@ export function DashboardPage() {
       return false;
     }
   });
-
-  // Track dashboard views for intro text
-  useEffect(() => {
-    try {
-      const views = parseInt(localStorage.getItem("sa_dashboard_views") ?? "0", 10);
-      localStorage.setItem("sa_dashboard_views", String(views + 1));
-    } catch {
-      // Ignore
-    }
-  }, []);
-
-  const dashboardViews = (() => {
-    try {
-      return parseInt(localStorage.getItem("sa_dashboard_views") ?? "0", 10);
-    } catch {
-      return 0;
-    }
-  })();
-
-  // Load completed actions from localStorage when programme loads
-  useEffect(() => {
-    if (!programme) return;
-    try {
-      const stored = localStorage.getItem("sleepassured_actions_completed");
-      if (stored) {
-        const parsed: Record<string, boolean> = JSON.parse(stored);
-        const currentIds = new Set(programme.dailyActions.map((a) => a.id));
-        const filtered = new Set(
-          Object.keys(parsed).filter((id) => currentIds.has(id))
-        );
-        setCompletedActions(filtered);
-        const cleaned: Record<string, boolean> = {};
-        for (const id of filtered) cleaned[id] = true;
-        localStorage.setItem("sleepassured_actions_completed", JSON.stringify(cleaned));
-      }
-    } catch {
-      // Ignore localStorage errors
-    }
-  }, [programme]);
-
-  const toggleAction = (actionId: string) => {
-    setCompletedActions((prev) => {
-      const next = new Set(prev);
-      if (next.has(actionId)) {
-        next.delete(actionId);
-      } else {
-        next.add(actionId);
-      }
-      try {
-        const obj: Record<string, boolean> = {};
-        for (const id of next) obj[id] = true;
-        localStorage.setItem("sleepassured_actions_completed", JSON.stringify(obj));
-      } catch {
-        // Ignore localStorage errors
-      }
-      return next;
-    });
-  };
 
   const toggleDataExpanded = () => {
     setDataExpanded((prev) => {
@@ -260,10 +201,6 @@ export function DashboardPage() {
   const isBaseline = !isLoading && !hasSchedule && !!baselineStatus;
   const isFirstTime = !isLoading && !hasSchedule && !baselineStatus;
   const firstName = user?.name?.split(" ")[0];
-
-  // Find first uncompleted action
-  const nextAction = programme?.dailyActions.find((a) => !completedActions.has(a.id));
-  const allActionsDone = programme ? programme.dailyActions.every((a) => completedActions.has(a.id)) : false;
 
   // Efficiency colour
   const effColour = lastNight
@@ -517,39 +454,6 @@ export function DashboardPage() {
                 )}
 
                 {/* ═══════════════════════════════════════
-                    TONIGHT'S ACTION
-                    ═══════════════════════════════════════ */}
-                {hasSchedule && programme && (
-                  <div className="animate-fade-up stagger-3 surface-card rounded-2xl px-5 py-4">
-                    <h3 className="text-[11px] text-muted-foreground uppercase tracking-widest mb-3">
-                      Tonight's action
-                    </h3>
-                    {dashboardViews <= 3 && (
-                      <p className="text-xs text-muted-foreground/70 mb-3 leading-relaxed">
-                        Each day, we'll give you one small thing to try. Small steps lead to big changes.
-                      </p>
-                    )}
-                    {allActionsDone ? (
-                      <div className="flex items-center gap-3 p-3 rounded-xl bg-primary/8">
-                        <CheckCircle2 className="h-5 w-5 text-primary shrink-0" />
-                        <span className="text-sm font-medium text-foreground">All done for today — great work!</span>
-                      </div>
-                    ) : nextAction ? (
-                      <button
-                        type="button"
-                        onClick={() => toggleAction(nextAction.id)}
-                        className="flex items-center gap-3.5 w-full text-left"
-                      >
-                        <div className="h-[22px] w-[22px] rounded-full border-[1.5px] border-border shrink-0" />
-                        <span className="text-[16px] text-foreground leading-snug">
-                          {nextAction.text}
-                        </span>
-                      </button>
-                    ) : null}
-                  </div>
-                )}
-
-                {/* ═══════════════════════════════════════
                     SLEEP WINDOW CARD
                     ═══════════════════════════════════════ */}
                 {hasSchedule && schedule && (
@@ -626,6 +530,27 @@ export function DashboardPage() {
                         <RecoveryCard />
                       </div>
                     )}
+                  </div>
+                )}
+
+                {/* ═══════════════════════════════════════
+                    TONIGHT'S TIP — data-driven one-liner
+                    ═══════════════════════════════════════ */}
+                {hasSchedule && programme?.dailyTip && (
+                  <div className="animate-fade-up stagger-4 surface-card rounded-2xl px-5 py-4">
+                    <div className="flex items-start gap-3">
+                      <div className="h-7 w-7 rounded-md bg-[hsl(var(--gold))]/10 flex items-center justify-center shrink-0 mt-0.5">
+                        <Lightbulb className="h-3.5 w-3.5 text-[hsl(var(--gold))]" />
+                      </div>
+                      <div>
+                        <h3 className="text-[11px] text-muted-foreground uppercase tracking-widest mb-1">
+                          Tonight's tip
+                        </h3>
+                        <p className="text-[15px] leading-relaxed text-foreground/80">
+                          {programme.dailyTip.message}
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 )}
 

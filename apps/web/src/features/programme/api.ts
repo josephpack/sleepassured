@@ -23,6 +23,11 @@ export interface ProgrammeProgress {
   upcomingTopics: string[];
 }
 
+export interface DailyTip {
+  id: string;
+  message: string;
+}
+
 export interface ProgrammeResponse {
   weekNumber: number;
   totalWeeks: number;
@@ -30,6 +35,7 @@ export interface ProgrammeResponse {
   summary: string;
   dailyActions: DailyAction[];
   dailyNudge: DailyNudge;
+  dailyTip: DailyTip;
   conversationStarters: ConversationStarter[];
   progress: ProgrammeProgress;
 }

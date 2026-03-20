@@ -391,5 +391,126 @@ export function generateConversationStarters(
   return matched.slice(0, 5).map(({ priority: _, ...rest }) => rest);
 }
 
+// ────────────────────────────────────────────────────
+// Daily tip rules (concrete, actionable one-liner for tonight)
+// ────────────────────────────────────────────────────
+
+export interface DailyTip {
+  id: string;
+  message: string;
+}
+
+interface TipRule {
+  id: string;
+  priority: number;
+  condition: (patterns: DetectedPatterns, ctx: SleepDataContext, week: number) => boolean;
+  template: (ctx: SleepDataContext, week: number) => string;
+}
+
+const TIP_RULES: TipRule[] = [
+  {
+    id: "no_diary_today",
+    priority: 1,
+    condition: (p) => p.noEntryToday,
+    template: () =>
+      "Log your sleep diary — it takes 2 minutes and keeps your programme on track.",
+  },
+  {
+    id: "first_day_schedule",
+    priority: 2,
+    condition: (p) => p.isFirstDayOnSchedule,
+    template: (ctx) => {
+      const sched = ctx.currentSchedule!;
+      return `New schedule starts tonight. Don't get into bed before ${sched.prescribedBedtime}.`;
+    },
+  },
+  {
+    id: "low_efficiency_last_night",
+    priority: 3,
+    condition: (_p, ctx) => {
+      if (ctx.recentDiaryEntries.length === 0) return false;
+      const last = ctx.recentDiaryEntries[0]!;
+      return last.sleepEfficiency !== null && last.sleepEfficiency < 70;
+    },
+    template: (ctx) => {
+      const wake = ctx.currentSchedule?.prescribedWakeTime ?? "your scheduled time";
+      return `After a tough night, stick to your ${wake} wake time. It builds the sleep pressure you need.`;
+    },
+  },
+  {
+    id: "low_quality_last_night",
+    priority: 4,
+    condition: (_p, ctx) => {
+      if (ctx.recentDiaryEntries.length === 0) return false;
+      return ctx.recentDiaryEntries[0]!.subjectiveQuality <= 3;
+    },
+    template: () =>
+      "Bad nights happen. Avoid napping today — it protects tonight's sleep drive.",
+  },
+  {
+    id: "early_weeks_stimulus",
+    priority: 5,
+    condition: (_p, _ctx, week) => week >= 1 && week <= 2,
+    template: () =>
+      "If you're not asleep within ~20 minutes, get out of bed. Return when you feel sleepy.",
+  },
+  {
+    id: "week_3_dip",
+    priority: 6,
+    condition: (_p, _ctx, week) => week === 3,
+    template: () =>
+      "Feeling more tired than before? That's the process working. The dip is temporary.",
+  },
+  {
+    id: "high_avg_efficiency",
+    priority: 7,
+    condition: (p) => p.avgEfficiency !== null && p.avgEfficiency >= 85,
+    template: () =>
+      "Your efficiency is strong. Keep the same routine tonight — consistency locks in the gains.",
+  },
+  {
+    id: "device_connected",
+    priority: 8,
+    condition: (_p, ctx) => ctx.hasDeviceConnection,
+    template: () =>
+      "Your sleep data is tracking automatically. Focus on following your schedule tonight.",
+  },
+  {
+    id: "fallback_schedule",
+    priority: 9,
+    condition: () => true,
+    template: (ctx) => {
+      const bed = ctx.currentSchedule?.prescribedBedtime ?? "your bedtime";
+      const wake = ctx.currentSchedule?.prescribedWakeTime ?? "your wake time";
+      return `Follow your sleep window tonight: bed at ${bed}, up at ${wake}.`;
+    },
+  },
+];
+
+/**
+ * Generate a single daily tip — concrete, actionable advice for tonight.
+ * First matching rule wins (lowest priority number).
+ */
+export function generateDailyTip(ctx: SleepDataContext, weekNumber: number): DailyTip {
+  const patterns = detectPatterns(ctx);
+
+  for (const rule of TIP_RULES) {
+    if (rule.condition(patterns, ctx, weekNumber)) {
+      return {
+        id: rule.id,
+        message: rule.template(ctx, weekNumber),
+      };
+    }
+  }
+
+  // Should never reach here because of fallback rule, but just in case
+  const bed = ctx.currentSchedule?.prescribedBedtime ?? "your bedtime";
+  const wake = ctx.currentSchedule?.prescribedWakeTime ?? "your wake time";
+  return {
+    id: "fallback_schedule",
+    message: `Follow your sleep window tonight: bed at ${bed}, up at ${wake}.`,
+  };
+}
+
 // Export for testing
 export { detectPatterns, type DetectedPatterns };

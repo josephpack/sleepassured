@@ -3,7 +3,7 @@ import { authenticate } from "../middleware/auth.js";
 import logger from "../lib/logger.js";
 import { buildChatContext } from "../services/chat.js";
 import { getCurriculum } from "../services/curriculum.js";
-import { generateNudges, generateConversationStarters } from "../services/nudges.js";
+import { generateNudges, generateConversationStarters, generateDailyTip } from "../services/nudges.js";
 
 const router = Router();
 
@@ -18,6 +18,7 @@ router.get("/current", authenticate, async (req: Request, res: Response) => {
     const curriculum = getCurriculum(weekNumber);
     const { dailyNudge } = generateNudges(context, weekNumber);
     const conversationStarters = generateConversationStarters(context, weekNumber);
+    const dailyTip = generateDailyTip(context, weekNumber);
 
     // Build topic list for progress
     const allTopics = Array.from({ length: 8 }, (_, i) => getCurriculum(i + 1).topic);
@@ -32,6 +33,10 @@ router.get("/current", authenticate, async (req: Request, res: Response) => {
       dailyNudge: {
         id: dailyNudge.id,
         message: dailyNudge.message,
+      },
+      dailyTip: {
+        id: dailyTip.id,
+        message: dailyTip.message,
       },
       conversationStarters: conversationStarters.map((s) => ({
         id: s.id,
