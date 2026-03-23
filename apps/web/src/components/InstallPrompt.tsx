@@ -1,80 +1,27 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Download, X, Share } from "lucide-react";
-
-interface BeforeInstallPromptEvent extends Event {
-  prompt(): Promise<void>;
-  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
-}
+import { usePwaInstall } from "@/hooks/usePwaInstall";
 
 const DISMISSED_KEY = "pwa-install-dismissed";
-const DISMISS_DAYS = 7;
-
-function wasDismissedRecently(): boolean {
-  const dismissed = localStorage.getItem(DISMISSED_KEY);
-  if (!dismissed) return false;
-  const dismissedAt = Number(dismissed);
-  const daysSince = (Date.now() - dismissedAt) / (1000 * 60 * 60 * 24);
-  return daysSince < DISMISS_DAYS;
-}
-
-function isStandalone(): boolean {
-  return (
-    window.matchMedia("(display-mode: standalone)").matches ||
-    ("standalone" in window.navigator &&
-      (window.navigator as unknown as { standalone: boolean }).standalone)
-  );
-}
-
-function isIOS(): boolean {
-  return /iPad|iPhone|iPod/.test(navigator.userAgent);
-}
 
 export function InstallPrompt() {
-  const [deferredPrompt, setDeferredPrompt] =
-    useState<BeforeInstallPromptEvent | null>(null);
-  const [showIOSGuide, setShowIOSGuide] = useState(false);
-  const [dismissed, setDismissed] = useState(false);
-
-  useEffect(() => {
-    if (isStandalone() || wasDismissedRecently()) {
-      setDismissed(true);
-      return;
-    }
-
-    // Android / Chrome — capture the native install prompt
-    const handler = (e: Event) => {
-      e.preventDefault();
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
-    };
-    window.addEventListener("beforeinstallprompt", handler);
-
-    // iOS Safari — show manual guide
-    if (isIOS()) {
-      setShowIOSGuide(true);
-    }
-
-    return () => window.removeEventListener("beforeinstallprompt", handler);
-  }, []);
+  const { canInstall, isIos, hasNativePrompt, install } = usePwaInstall();
+  const [dismissed, setDismissed] = useState(
+    () => !!localStorage.getItem(DISMISSED_KEY)
+  );
 
   const handleInstall = useCallback(async () => {
-    if (!deferredPrompt) return;
-    await deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    if (outcome === "accepted") {
-      setDismissed(true);
-    }
-    setDeferredPrompt(null);
-  }, [deferredPrompt]);
+    const accepted = await install();
+    if (accepted) setDismissed(true);
+  }, [install]);
 
   const handleDismiss = useCallback(() => {
-    localStorage.setItem(DISMISSED_KEY, String(Date.now()));
+    localStorage.setItem(DISMISSED_KEY, "1");
     setDismissed(true);
   }, []);
 
-  // Don't render if already installed, dismissed, or no prompt available
-  if (dismissed || isStandalone()) return null;
-  if (!deferredPrompt && !showIOSGuide) return null;
+  if (dismissed || !canInstall) return null;
 
   return (
     <div className="mx-4 mb-4">
@@ -88,7 +35,7 @@ export function InstallPrompt() {
         </button>
 
         {/* Android / Chrome — one-tap install */}
-        {deferredPrompt && (
+        {hasNativePrompt && (
           <div className="flex items-center gap-3 pr-6">
             <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
               <Download className="h-5 w-5 text-primary" />
@@ -106,7 +53,7 @@ export function InstallPrompt() {
         )}
 
         {/* iOS Safari — step-by-step guide */}
-        {showIOSGuide && !deferredPrompt && (
+        {isIos && !hasNativePrompt && (
           <div className="pr-6">
             <div className="flex items-center gap-3 mb-3">
               <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">

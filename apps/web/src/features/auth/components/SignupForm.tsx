@@ -108,14 +108,7 @@ export function SignupForm() {
           className="mt-0.5"
         />
         <Label htmlFor="acceptTerms" className="text-sm font-normal cursor-pointer leading-tight">
-          I agree to the{" "}
-          <a href="/terms" className="text-primary hover:underline">
-            Terms of Service
-          </a>{" "}
-          and{" "}
-          <a href="/privacy" className="text-primary hover:underline">
-            Privacy Policy
-          </a>
+          I agree to the Terms of Service and Privacy Policy
         </Label>
       </div>
       {errors.acceptTerms && (

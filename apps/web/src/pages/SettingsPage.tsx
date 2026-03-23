@@ -2,12 +2,14 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { WhoopConnect } from "@/components/WhoopConnect";
 import { AppleHealthConnect } from "@/components/AppleHealthConnect";
-import { ArrowLeft, LogOut, Shield, User, Link2 } from "lucide-react";
+import { ArrowLeft, Download, LogOut, Share, Shield, Smartphone, User, Link2 } from "lucide-react";
+import { usePwaInstall } from "@/hooks/usePwaInstall";
 import { Link, useNavigate } from "react-router-dom";
 
 export function SettingsPage() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const { canInstall, isIos, hasNativePrompt, install } = usePwaInstall();
 
   return (
     <div className="px-4 pt-6 pb-10">
@@ -64,6 +66,67 @@ export function SettingsPage() {
               </div>
             </div>
           </section>
+
+          {/* Add to Home Screen */}
+          {canInstall && (
+            <section className="animate-fade-up stagger-3">
+              <div className="flex items-center gap-2 mb-2.5">
+                <Smartphone className="h-3.5 w-3.5 text-muted-foreground" />
+                <h2 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">App</h2>
+              </div>
+              <div className="glass-card rounded-2xl p-5">
+                {hasNativePrompt ? (
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                      <Download className="h-5 w-5 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-sm">Add to Home Screen</p>
+                      <p className="text-xs text-muted-foreground">
+                        Install for quick access
+                      </p>
+                    </div>
+                    <Button size="sm" onClick={install} className="shrink-0">
+                      Install
+                    </Button>
+                  </div>
+                ) : isIos ? (
+                  <div>
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                        <Download className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-sm">Add to Home Screen</p>
+                        <p className="text-xs text-muted-foreground">
+                          Install for quick access
+                        </p>
+                      </div>
+                    </div>
+                    <div className="space-y-2 ml-1">
+                      <div className="flex items-center gap-2.5 text-sm">
+                        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">
+                          1
+                        </span>
+                        <span>
+                          Tap the <Share className="inline h-4 w-4 align-text-bottom mx-0.5" /> Share button
+                          at the bottom of Safari
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2.5 text-sm">
+                        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">
+                          2
+                        </span>
+                        <span>
+                          Scroll down and tap <strong>Add to Home Screen</strong>
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+            </section>
+          )}
 
           {/* Admin */}
           {user?.isAdmin && (
